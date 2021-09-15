@@ -167,11 +167,51 @@ The general linear model: $Y = X \beta + \epsilon$:
 Do a linear regression, expressing fuel usage as a function of weight using the function __lm__  
 ```{r, eval=FALSE}
 data(mtcars)
-model <- lm(formula=..., data=...)
+model <- lm(formula= mpg~wt, data=mtcars)
+
+summary(model)
 ```
 1. extract $\hat{\beta}$, $Y$, $\hat{Y}$, $X$ and $\epsilon$ from __model__ (hint: have a look at the function __model.matrix__)  
     i. create a plot that illustrates $Y$ and $\hat{Y}$ (if you are feeling ambitious, also include $\epsilon$ (hint: you can use the function __arrows__))
+
+```{r}
+#Estimated betas
+model$coefficients
+
+#Design matrix
+X <- model.matrix(model)
+
+#estimated y-values (yhat)
+estimated_y <- predict(model)
+
+#actual y-values
+actual_y <- mtcars$mpg
+
+#residuals
+residuals <- model$residuals
+
+#Plotting actual y-values vs. estimated y-values
+library(tidyverse)
+
+plot(actual_y, estimated_y)
+arrows(actual_y, estimated_y, x1 = actual_y, y1 = actual_y, length = 0.1, angle = 3, code = 2, col = par("fg"), lty = par("lty"), lwd = par("lwd"))
+```
+
+    
 2. estimate $\beta$ for a quadratic model ($y = {\beta}_{2} x^2 + {\beta}_{1} x + {\beta}_{0}$) using ordinary least squares _without_ using __lm__; $\hat{\beta} = {({X}^{T} X)}^{-1} {X}^{T} Y$ (hint: add a third column to $X$ from step 1)
+
+```{r}
+X_NEW <- as.data.frame(X)
+X_NEW$wt_squared <- X_NEW$wt^2
+X_NEW <- as.matrix(X_NEW)
+
+##OLS ESTIMATOR## 
+bhat <- solve(t(X_NEW) %*% X_NEW) %*% t(X_NEW) %*% actual_y
+
+bhat
+```
+
+
 3. compare your acquired $\hat{\beta}$ with the output of the corresponding quadratic model created using __lm__ (hint: use the function __I__, see details under help and the sub-section formula operators here: https://www.datacamp.com/community/tutorials/r-formula-tutorial)  
     i. create a plot that illustrates $Y$ and $\hat{Y}$ (if you are feeling ambitious, also include $\epsilon$ (hint: you can use the function __arrows__))  
 
