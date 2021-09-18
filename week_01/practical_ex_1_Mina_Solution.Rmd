@@ -1,7 +1,7 @@
 ---
 title: "practical_exercise_1, Methods 3, 2021, autumn semester"
-author: '[FILL IN YOUR NAME]'
-date: "[FILL IN THE DATE]"
+author: 'Mina Almasi (Github @MinaAlmasi)'
+date: "20/09/21"
 output: html_document
 ---
 
@@ -149,10 +149,10 @@ q_estimated_y <- predict(quadratic_model)
 #Plotting actual vs. estimated y values
 plot(actual_y, q_estimated_y)
 arrows(actual_y, q_estimated_y, x1 = actual_y, y1 = actual_y, length = 0.1, angle = 3, code = 2, col = par("fg"), lty = par("lty"), lwd = par("lwd"))
-title("Actual Y-values and Estimated Y-values using the Quadratic Model")
+title("Actual Y-values and Estimated Y-values (Quadratic Model)")
 ```
 
-Firstly, by looking at the "coefficients" output, we can note that the lm() function and the ordinary least squares (OLS) estimator gives exactly the same output at 6 decimals. 
+Solely by looking at the "coefficients" output, we can note that the lm() function and the ordinary least squares (OLS) estimator gives exactly the same output at 6 decimals. 
 
 ## Exercise 2
 Compare the plotted quadratic fit to the linear fit  
