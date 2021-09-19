@@ -189,13 +189,13 @@ quadratic_plot
 
 ## Exercise 2
 Compare the plotted quadratic fit to the linear fit  
-```{r}
+```{r exercise 2}
 #Showing the fits 
 plotted_fits <- ggplot(mtcars, aes(wt))+
   geom_point(aes(y=mpg), color = "black")+
   geom_line(aes(y = estimated_y), color = "red")+
-  geom_line(aes(y=estimated_y_q), color ="black")+
-  labs(x = "wt", y = "mpg", title = "Quadratic vs Linear fit")+ 
+  geom_line(aes(y=estimated_y_q), color ="blue")+
+  labs(x = "wt", y = "mpg", title = "Linear vs Quadratic Fit")+ 
   theme_bw()
 
 plotted_fits
@@ -214,29 +214,85 @@ $SSE = \sum(\hat{y_i}-y_i)^2$
 
 where $\hat{y_i}-y_i$ represents the residuals which was calculated with the function residuals() during exercise 1. 
 
-```{r}
+```{r exercise 2.2}
 SSE_linear <- sum((residuals)^2)
 
 SSE_quadratic <- sum((residuals_q)^2)
 
-SSE_linear
-SSE_quadratic
+#Comparing SSE 
+SSE_all <- cbind(SSE_linear, SSE_quadratic) #c-bind to combine the two vectors
+colnames(SSE_all) <- c("Linear", "Quadratic") #adding colnames 
+
+SSE_all
 ```
 
+The quadratic model has the lower SSE by quite a lot. 
 
-3. now make a cubic fit ($y = {\beta}_{3} x^3 + {\beta}_{2} x^2 + {\beta}_{1} x + {\beta}_{0}$) and compare it to the quadratic fit  
+3. now make a cubic fit ($y = {\beta}_{3} x^3 + {\beta}_{2} x^2 + {\beta}_{1} x + {\beta}_{0}$) and compare it to the quadratic fit
     i. create a plot that illustrates $Y$ and $\hat{Y}$ for both the cubic and the quadratic fits (plot them in the same plot)  
     ii. compare the sum of squared errors  
     iii. what's the estimated value of the "cubic" (${\beta}_3$) parameter? Comment on this!  
+    
+```{r exercise 2.3}
+#Creating the cubic model using the function I()
+cubic_model <- lm(mpg~wt+I(wt^2)+I(wt^3), data=mtcars)
+
+summary(cubic_model)
+```
+    
+```{r exercise 2.3.i}
+#Estimating the y-values (yhat) for the cubic model 
+estimated_y_cubic <- predict(cubic_model)
+
+#Plotting actual y-values vs. estimated in ggplot 
+plotted_fits <- ggplot(mtcars, aes(wt))+
+  geom_point(aes(y=mpg), color = "black")+
+  geom_line(aes(y=estimated_y_q), color ="red")+
+  geom_line(aes(y=estimated_y_cubic), color = "green")
+  labs(x = "wt", y = "mpg", title = "Quadratic Fit vs. Cubic")+ 
+  theme_bw()
+
+plotted_fits
+```
+
+Visually, the two are very similar. The green line (the cubic fit) almost covers the red (the quadratic line)
+
+```{r exercise 2.3.ii}
+#cubic model residuals 
+residuals_c <- residuals(cubic_model)
+
+#cubic model SSE
+SSE_cubic <- sum((residuals_c)^2)
+
+#Comparing SSE 
+SSE_qc <- cbind(SSE_quadratic, SSE_cubic) #c-bind to combine the two vectors
+colnames(SSE_qc) <- c("Quadratic", "Cubic") #adding colnames 
+
+SSE_qc
+```
+
+Numerically, the two fits are basically identical. The cubic is slightly lower, but there is barely a difference. 
+
+```{r exercise 2.3iii}
+#Printing all coefficients 
+cubic_model$coefficients
+
+#Printing beta_3 
+cubic_model$coefficients[4]
+```
+$\hat{\beta_3}$ is very very small compared to the others estimated coefficients which may explain why the quadratic and cubic model is so similar. 
+
 4. bonus question: which summary statistic is the fitted value (_Intercept_ or ${\beta}_0$ in $y = {\beta}_0$) below identical to?
 ```{r, echo=FALSE}
 lm(mpg ~ 1, data=mtcars)
 ```
+The model above is also called the *null model* which has fitted the model to a constant. 
+
 ## Exercise 3
 Doing a logistic regression - estimating the probability that a car has automatic transmission (0) or manual transmission (1) based on its weight
 ```{r, eval=FALSE}
 data(mtcars)
-logistic.model <- glm(formula=..., data=..., family='binomial')
+logistic.model <- glm(formula= am~ wt, data=mtcars, family='binomial')
 ```
 
 Probabilities live on the range $(0, 1)$ - using the so-called logit function as a "link-function" we can map these onto the range $(-\infty, \infty)$, i.e. the real numbers.  
