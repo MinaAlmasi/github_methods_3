@@ -94,7 +94,9 @@ summary(model)
 
 ```{r exercise 1.1}
 #Estimated betas
-model$coefficients
+betas <- model$coefficients
+
+betas
 
 #Design matrix
 X <- model.matrix(model)
@@ -108,11 +110,30 @@ actual_y <- mtcars$mpg
 #residuals
 residuals <- model$residuals
 
-#Plotting actual y-values vs. estimated y-values
+#Plotting actual y-values vs. estimated y-values with residuals represented with the arrows function
 plot(actual_y, estimated_y)
 arrows(actual_y, estimated_y, x1 = actual_y, y1 = actual_y, length = 0.1, angle = 3, code = 2, col = par("fg"), lty = par("lty"), lwd = par("lwd"))
 title("Actual Y-values and Estimated Y-values")
+
+#Plotting actual y-values vs. estimated in ggplot 
+intercept <- as.numeric(betas[1])
+slope <- as.numeric(betas[2])
+
+ggplot(mtcars, aes(x=wt, y=mpg)) +
+  geom_point() +
+  geom_abline(intercept=intercept, slope=slope) + 
+  geom_linerange(aes(residuals), ymin = mtcars$mpg, ymax = estimated_y, x=mtcars$wt, color = "indianred", alpha = 0.5) + 
+  labs(x='wt (x-values)', y='mpg (actual y-values)')
+
 ```
+
+Arrows() documentation: https://www.rdocumentation.org/packages/graphics/versions/3.6.2/topics/arrows
+
+arrows(x0, y0, x1 = x0, y1 = y0 ....) 
+
+x0, y0 -> coordinates from which to draw 
+
+x1, y1 --> coordinates of points to which to draw. At least one must the supplied
 
     
 2. estimate $\beta$ for a quadratic model ($y = {\beta}_{2} x^2 + {\beta}_{1} x + {\beta}_{0}$) using ordinary least squares _without_ using __lm__; $\hat{\beta} = {({X}^{T} X)}^{-1} {X}^{T} Y$ (hint: add a third column to $X$ from step 1)
@@ -135,22 +156,42 @@ bhat
     
 ```{r exercise 1.3}
 #Creating the quadratic model using the function I()
-quadratic_model <-  lm(formula= mpg~wt+I(wt^2), data=mtcars)
+quadratic_model <-  lm(mpg~wt+I(wt^2), data=mtcars)
+
+betas_q <- quadratic_model$coefficients
 
 #Comparing coefficients
-coefficients <- cbind(bhat, quadratic_model$coefficients) #c-bind to combine the two vectors
-colnames(coefficients) <- c("OLS", "lm()") #adding colnames 
+all_coefficients <- cbind(bhat, betas_q) #c-bind to combine the two vectors
+colnames(all_coefficients) <- c("OLS", "lm()") #adding colnames 
 
-coefficients
+all_coefficients
 
 #Estimating the y-values (yhat) using the quadratic model 
 q_estimated_y <- predict(quadratic_model)
-  
+
+#residuals 
+residuals_q <- residuals(quadratic_model)
+```
+
+```{r exercise 1.3i}
 #Plotting actual vs. estimated y values
 plot(actual_y, q_estimated_y)
 arrows(actual_y, q_estimated_y, x1 = actual_y, y1 = actual_y, length = 0.1, angle = 3, code = 2, col = par("fg"), lty = par("lty"), lwd = par("lwd"))
 title("Actual Y-values and Estimated Y-values (Quadratic Model)")
+
+
+#Plotting actual y-values vs. estimated in ggplot 
+intercept <- as.numeric(betas_q[1])
+slope <- as.numeric(betas_q[2])
+
+ggplot(mtcars, aes(x=wt, y=q_estimated_y)) +
+  geom_point() +
+  geom_abline(intercept=intercept, slope=slope) + 
+  geom_linerange(aes(residuals_q), ymin = mtcars$mpg, ymax = q_estimated_y, x=mtcars$wt, color = "indianred", alpha = 0.5) + 
+  labs(x='wt (x-values)', y='mpg (actual y-values)')
+
 ```
+
 
 Solely by looking at the "coefficients" output, we can note that the lm() function and the ordinary least squares (OLS) estimator gives exactly the same output at 6 decimals. 
 
