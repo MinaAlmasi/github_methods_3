@@ -296,14 +296,13 @@ inv.logit <- function(x) exp(x) / (1 + exp(x))
 1. plot the fitted values for __logistic.model__:  
     i. what is the relation between the __linear.predictors__ and the __fitted_values__ of the __logistic.model__ object?
 ```{r 3.1}
-ggplot(mtcars, aes(wt,am))+
-  geom_point()+
-  xlim(0,7)+
-  labs(x='wt', y='am', title = "Logistic Model: Fitted Values")+
-  theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5))
+#Estimated y-values 
+estimated_y_logm <- inv.logit(predict(logistic.model))
+
+plot(mtcars$wt, estimated_y_logm)
 ```
 
+The  __linear.predictors__ are sets of coefficients which are used to predict values of the dependent variable. In this case, there is one linear predictor *wt* = -4.023 which is used to predict the value of outcome variable *am*. The __fitted_values__ are a result of the linear predictors.
     
 2. plot the logistic function, you've estimated based on your $\hat{\beta}$, (not just the fitted values). Use an _xlim_ of (0, 7)
     i. what's the interpretation of the estimated $\hat{\beta}_0$ (the _Intercept_)
@@ -319,8 +318,6 @@ ggplot(mtcars, aes(wt,am))+
 \end{equation}    
 
 ```{r}
-estimated_y_logm <- inv.logit(predict(logistic.model))
-
 ggplot(mtcars, aes(wt,am))+
   geom_point(aes(colour=estimated_y))+
   xlim(0,7)+
