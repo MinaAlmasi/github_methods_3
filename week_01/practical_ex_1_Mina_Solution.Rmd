@@ -119,12 +119,13 @@ title("Actual Y-values and Estimated Y-values")
 intercept <- as.numeric(betas[1])
 slope <- as.numeric(betas[2])
 
-ggplot(mtcars, aes(x=wt, y=mpg)) +
+linear_plot <- ggplot(mtcars, aes(x=wt, y=mpg)) +
   geom_point() +
   geom_abline(intercept=intercept, slope=slope) + 
   geom_linerange(aes(residuals), ymin = mtcars$mpg, ymax = estimated_y, x=mtcars$wt, color = "indianred", alpha = 0.5) + 
-  labs(x='wt (x-values)', y='mpg (actual y-values)')
+  labs(x='wt', y='mpg')
 
+linear_plot
 ```
 
 Arrows() documentation: https://www.rdocumentation.org/packages/graphics/versions/3.6.2/topics/arrows
@@ -145,9 +146,7 @@ X_NEW$wt_squared <- X_NEW$wt^2 #adding a new column (with the x-values squared)
 X_NEW <- as.matrix(X_NEW) 
 
 #Estimating bhat for a quadratic model using the OLS ESTIMATOR
-bhat <- solve(t(X_NEW) %*% X_NEW) %*% t(X_NEW) %*% actual_y
-
-bhat
+OLS_betas_q <- solve(t(X_NEW) %*% X_NEW) %*% t(X_NEW) %*% actual_y
 ```
 
 
@@ -161,45 +160,70 @@ quadratic_model <-  lm(mpg~wt+I(wt^2), data=mtcars)
 betas_q <- quadratic_model$coefficients
 
 #Comparing coefficients
-all_coefficients <- cbind(bhat, betas_q) #c-bind to combine the two vectors
+all_coefficients <- cbind(OLS_betas_q, betas_q) #c-bind to combine the two vectors
 colnames(all_coefficients) <- c("OLS", "lm()") #adding colnames 
 
 all_coefficients
-
-#Estimating the y-values (yhat) using the quadratic model 
-q_estimated_y <- predict(quadratic_model)
-
-#residuals 
-residuals_q <- residuals(quadratic_model)
 ```
-
-```{r exercise 1.3i}
-#Plotting actual vs. estimated y values
-plot(actual_y, q_estimated_y)
-arrows(actual_y, q_estimated_y, x1 = actual_y, y1 = actual_y, length = 0.1, angle = 3, code = 2, col = par("fg"), lty = par("lty"), lwd = par("lwd"))
-title("Actual Y-values and Estimated Y-values (Quadratic Model)")
-
-
-#Plotting actual y-values vs. estimated in ggplot 
-intercept <- as.numeric(betas_q[1])
-slope <- as.numeric(betas_q[2])
-
-ggplot(mtcars, aes(x=wt, y=q_estimated_y)) +
-  geom_point() +
-  geom_abline(intercept=intercept, slope=slope) + 
-  geom_linerange(aes(residuals_q), ymin = mtcars$mpg, ymax = q_estimated_y, x=mtcars$wt, color = "indianred", alpha = 0.5) + 
-  labs(x='wt (x-values)', y='mpg (actual y-values)')
-
-```
-
 
 Solely by looking at the "coefficients" output, we can note that the lm() function and the ordinary least squares (OLS) estimator gives exactly the same output at 6 decimals. 
 
+
+```{r exercise 1.3i}
+#Estimating the y-values (yhat) using the quadratic model 
+estimated_y_q <- predict(quadratic_model)
+
+#residuals 
+residuals_q <- residuals(quadratic_model)
+
+#Plotting actual y-values vs. estimated in ggplot 
+quadratic_plot <- ggplot(mtcars, aes(wt))+
+  geom_point(aes(y=mpg), color = "black")+
+  geom_line(aes(y=estimated_y_q), color ="black")+
+  geom_linerange(aes(residuals_q), ymin = mtcars$mpg, ymax = estimated_y_q, x=mtcars$wt, color = "indianred")+
+  xlab("wt") + ylab("mpg")
+
+quadratic_plot
+```
+
+
 ## Exercise 2
 Compare the plotted quadratic fit to the linear fit  
+```{r}
+#Showing the fits 
+plotted_fits <- ggplot(mtcars, aes(wt))+
+  geom_point(aes(y=mpg), color = "black")+
+  geom_line(aes(y = estimated_y), color = "red")+
+  geom_line(aes(y=estimated_y_q), color ="black")+
+  labs(x = "wt", y = "mpg", title = "Quadratic vs Linear fit")+ 
+  theme_bw()
+
+plotted_fits
+
+#Showing the lines separately 
+ggpubr::ggarrange(linear_plot, quadratic_plot)
+```
 
 1. which seems better?  
+Visually, it is difficult to tell which is better. It does not seem to be a drastic difference between the two models. 
+
 2. calculate the sum of squared errors, (show the calculation based on $\epsilon$). Which fit has the lower sum?  
+
+We can calculate the sum of squared errors with the following formula: 
+$SSE = \sum(\hat{y_i}-y_i)^2$
+
+where $\hat{y_i}-y_i$ represents the residuals which was calculated with the function residuals() during exercise 1. 
+
+```{r}
+SSE_linear <- sum((residuals)^2)
+
+SSE_quadratic <- sum((residuals_q)^2)
+
+SSE_linear
+SSE_quadratic
+```
+
+
 3. now make a cubic fit ($y = {\beta}_{3} x^3 + {\beta}_{2} x^2 + {\beta}_{1} x + {\beta}_{0}$) and compare it to the quadratic fit  
     i. create a plot that illustrates $Y$ and $\hat{Y}$ for both the cubic and the quadratic fits (plot them in the same plot)  
     ii. compare the sum of squared errors  
