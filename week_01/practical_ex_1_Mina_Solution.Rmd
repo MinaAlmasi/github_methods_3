@@ -93,6 +93,8 @@ summary(model)
     i. create a plot that illustrates $Y$ and $\hat{Y}$ (if you are feeling ambitious, also include $\epsilon$ (hint: you can use the function __arrows__))
 
 ```{r exercise 1.1}
+##EXTRACTING VALUES FROM MODEL## 
+
 #Estimated betas
 betas <- model$coefficients
 
@@ -109,8 +111,10 @@ actual_y <- mtcars$mpg
 
 #residuals
 residuals <- model$residuals
+```
 
-#Plotting actual y-values vs. estimated in ggplot 
+```{r exercise 1.1i}
+#Plotting actual y-values vs. estimated in ggplot#
 intercept <- as.numeric(betas[1])
 slope <- as.numeric(betas[2])
 
@@ -125,6 +129,7 @@ linear_plot <- ggplot(mtcars, aes(x=wt, y=mpg)) +
 linear_plot
 ```
 
+
 2. estimate $\beta$ for a quadratic model ($y = {\beta}_{2} x^2 + {\beta}_{1} x + {\beta}_{0}$) using ordinary least squares _without_ using __lm__; $\hat{\beta} = {({X}^{T} X)}^{-1} {X}^{T} Y$ (hint: add a third column to $X$ from step 1)
 
 ```{r exercise 1.2}
@@ -136,7 +141,6 @@ X_NEW <- as.matrix(X_NEW)
 #Estimating bhat for a quadratic model using the OLS ESTIMATOR
 OLS_betas_q <- solve(t(X_NEW) %*% X_NEW) %*% t(X_NEW) %*% actual_y
 ```
-
 
 3. compare your acquired $\hat{\beta}$ with the output of the corresponding quadratic model created using __lm__ (hint: use the function __I__, see details under help and the sub-section formula operators here: https://www.datacamp.com/community/tutorials/r-formula-tutorial)  
     i. create a plot that illustrates $Y$ and $\hat{Y}$ (if you are feeling ambitious, also include $\epsilon$ (hint: you can use the function __arrows__))  
@@ -156,9 +160,8 @@ all_coefficients
 
 Solely by looking at the "coefficients" output, we can note that the lm() function and the ordinary least squares (OLS) estimator gives exactly the same output at 6 decimals. 
 
-
 ```{r exercise 1.3i}
-#Estimating the y-values (yhat) using the quadratic model 
+#Estimating the y-values (yhat) 
 estimated_y_q <- predict(quadratic_model)
 
 #residuals 
@@ -175,7 +178,6 @@ quadratic_plot <- ggplot(mtcars, aes(wt))+
 
 quadratic_plot
 ```
-
 
 ## Exercise 2
 Compare the plotted quadratic fit to the linear fit  
@@ -195,7 +197,7 @@ plotted_fits
 1. which seems better?  
 Visually, it is difficult to tell which is better. It does not seem to be a drastic difference between the two models. 
 
-2. calculate the sum of squared errors, (show the calculation based on $\epsilon$). Which fit has the lower sum?  
+2. calculate the sum of squared errors, (show the calculation based on $\epsilon$). Which fit has the lower sum?
 
 We can calculate the sum of squared errors with the following formula: 
 $SSE = \sum(\hat{y_i}-y_i)^2$
@@ -243,7 +245,7 @@ plotted_fits <- ggplot(mtcars, aes(wt))+
 plotted_fits
 ```
 
-Visually, the two are very similar. The green line (the cubic fit) almost covers the red (the quadratic line)
+2.3i: Visually, the two are very similar. The green line (the cubic fit) almost covers the red (the quadratic line)
 
 ```{r exercise 2.3ii}
 #cubic model residuals 
@@ -259,7 +261,7 @@ colnames(SSE_qc) <- c("Quadratic", "Cubic") #adding colnames
 SSE_qc
 ```
 
-Numerically, the two fits are basically identical. The cubic is slightly lower, but there is barely a difference. 
+2.3ii: Numerically, the two fits are basically identical. The cubic is slightly lower, but there is barely a difference. 
 
 ```{r exercise 2.3iii}
 #Printing all coefficients 
@@ -268,7 +270,7 @@ cubic_model$coefficients
 #Printing beta_3 
 cubic_model$coefficients[4]
 ```
-$\hat{\beta_3}$ is very very small compared to the others estimated coefficients which may explain why the quadratic and cubic model is so similar. 
+2.3iii: $\hat{\beta_3}$ is very very small compared to the others estimated coefficients which may explain why the quadratic and cubic model is so similar. 
 
 4. bonus question: which summary statistic is the fitted value (_Intercept_ or ${\beta}_0$ in $y = {\beta}_0$) below identical to?
 ```{r, echo=FALSE}
@@ -295,7 +297,7 @@ inv.logit <- function(x) exp(x) / (1 + exp(x))
 
 1. plot the fitted values for __logistic.model__:  
     i. what is the relation between the __linear.predictors__ and the __fitted_values__ of the __logistic.model__ object?
-```{r 3.1}
+```{r 3.1 & 3.1i}
 fitted <- fitted.values(logistic.model)
 
 ggplot(mtcars, aes(wt, fitted)) + 
@@ -315,7 +317,7 @@ ggplot(mtcars, aes(wt, estimated_y_logm)) +
 ```
 3.1i: __Linear.predictors__ are sets of coefficients which are used to predict values of the dependent variable. In this case, there is one linear predictor *wt* = -4.023 which is used to predict the value of outcome variable *am*. If we take the inv.logit of the estimated values from the linear predictor, we get the fitted values:
 
-```{r}
+```{r 3.1i}
 inv.logit(estimated_y_logm) == fitted
 ```
 
@@ -349,7 +351,7 @@ summary(logistic.model)
 inv.logit(logistic.model$coefficients[1])
 ```
 
-3.2i, interpretation of the _intercept_: The coefficients are given in log-odds, and for interpretability, the inverse logarithm has been taken to convert the intercept to probabilities. 
+3.2i (interpretation of the _intercept_): The coefficients are given in log-odds, and for interpretability, the inverse logarithm has been taken to convert the intercept to probabilities. 
 In this case, given wt = 0, there is ~100 % chance that the transmission of the car will be manual (as *am* i.e., the transmission is coded as 0 = automatic & 1 = manual)
 
 ```{r exercise 3.2ii}
@@ -363,7 +365,7 @@ inv.logit(predict(logistic.model, newdata = firebird))
 1-inv.logit(predict(logistic.model, newdata = firebird))
 ```
 
-There is a 97 % probability that the Pontiac FireBird will have automatic transmission. 
+3.2ii: There is a 97 % probability that the Pontiac FireBird will have automatic transmission. 
     
 3. plot quadratic fit alongside linear fit  
     i. judging visually, does adding a quadratic term make a difference?
@@ -400,7 +402,7 @@ deviance(logistic.model_q)
 # Next time
 We are going to looking at extending our models with so called random effects. We need to install the package "lme4" for this. Run the code below or install it from your package manager (Linux)  
 ```{r, eval=FALSE}
-install.packages("lme4")
+#install.packages("lme4")
 ```
 We can fit a model like this:
 
