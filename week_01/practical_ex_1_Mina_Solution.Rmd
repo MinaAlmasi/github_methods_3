@@ -228,7 +228,7 @@ cubic_model <- lm(mpg~wt+I(wt^2)+I(wt^3), data=mtcars)
 summary(cubic_model)
 ```
     
-```{r exercise 2.3.i}
+```{r exercise 2.3i}
 #Estimating the y-values (yhat) for the cubic model 
 estimated_y_cubic <- predict(cubic_model)
 
@@ -245,7 +245,7 @@ plotted_fits
 
 Visually, the two are very similar. The green line (the cubic fit) almost covers the red (the quadratic line)
 
-```{r exercise 2.3.ii}
+```{r exercise 2.3ii}
 #cubic model residuals 
 residuals_c <- residuals(cubic_model)
 
@@ -274,7 +274,7 @@ $\hat{\beta_3}$ is very very small compared to the others estimated coefficients
 ```{r, echo=FALSE}
 lm(mpg ~ 1, data=mtcars)
 ```
-The model above is also called the *null model* which has fitted the model to a constant. 
+2.4: The model above is also called the *null model* which has fitted the model to a constant. 
 
 ## Exercise 3
 Doing a logistic regression - estimating the probability that a car has automatic transmission (0) or manual transmission (1) based on its weight
@@ -296,20 +296,29 @@ inv.logit <- function(x) exp(x) / (1 + exp(x))
 1. plot the fitted values for __logistic.model__:  
     i. what is the relation between the __linear.predictors__ and the __fitted_values__ of the __logistic.model__ object?
 ```{r 3.1}
-#Estimated y-values 
-estimated_y_logm <- inv.logit(predict(logistic.model))
+fitted <- fitted.values(logistic.model)
 
-log_fitted_values <- data.frame(wt = mtcars$wt, estimated_y = estimated_y_logm) 
-
-ggplot(log_fitted_values, aes(wt, estimated_y)) + 
+ggplot(mtcars, aes(wt, fitted)) + 
   geom_point()+
   theme_bw()+ 
   labs(title = "Fitted Values")+
   theme(plot.title = element_text(hjust = 0.5))
+
+#Let's try to predict (Linear Predictor)
+estimated_y_logm <- predict(logistic.model)
+
+ggplot(mtcars, aes(wt, estimated_y_logm)) + 
+  geom_point()+
+  theme_bw()+ 
+  labs(title = "Linear Predictors")+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+3.1i: __Linear.predictors__ are sets of coefficients which are used to predict values of the dependent variable. In this case, there is one linear predictor *wt* = -4.023 which is used to predict the value of outcome variable *am*. If we take the inv.logit of the estimated values from the linear predictor, we get the fitted values:
+
+```{r}
+inv.logit(estimated_y_logm) == fitted
 ```
 
-The  __linear.predictors__ are sets of coefficients which are used to predict values of the dependent variable. In this case, there is one linear predictor *wt* = -4.023 which is used to predict the value of outcome variable *am*. The __fitted_values__ are a result of the linear predictors.
-    
 2. plot the logistic function, you've estimated based on your $\hat{\beta}$, (not just the fitted values). Use an _xlim_ of (0, 7)
     i. what's the interpretation of the estimated $\hat{\beta}_0$ (the _Intercept_)
     ii. calculate the estimated probability that the Pontiac Firebird has automatic transmission, given its weight
@@ -340,20 +349,54 @@ summary(logistic.model)
 inv.logit(logistic.model$coefficients[1])
 ```
 
-Interpretation of the _Intercept_: The coefficients are given in log-odds, and for interpretability, the inverse logarithm has been taken to convert the intercept to probabilities. 
+3.2i, interpretation of the _intercept_: The coefficients are given in log-odds, and for interpretability, the inverse logarithm has been taken to convert the intercept to probabilities. 
 In this case, given wt = 0, there is ~100 % chance that the transmission of the car will be manual (as *am* i.e., the transmission is coded as 0 = automatic & 1 = manual)
 
 ```{r exercise 3.2ii}
-#The probability of manual transmission of 
+#extracting the Firebird from the dataset
+firebird <- mtcars["Pontiac Firebird", ]
 
+#predicting the probability of the firebird having manual transmission
+inv.logit(predict(logistic.model, newdata = firebird))
+
+#predicting the probability of the firebird having automatic transmission
+1-inv.logit(predict(logistic.model, newdata = firebird))
 ```
 
+There is a 97 % probability that the Pontiac FireBird will have automatic transmission. 
     
 3. plot quadratic fit alongside linear fit  
     i. judging visually, does adding a quadratic term make a difference?
     ii. check the details in the help of the AIC function - which of the models provide the better fit according to the AIC values and the residual deviance respectively?
     iii. in your own words, why might it be good to penalise a model like the quadratic model, we just fitted.
-    
+  
+```{r exercise 3.3 & 3.3i}
+logistic.model_q <- glm(formula = am ~ wt + I(wt^2), data = mtcars, family = "binomial")
+
+ggplot(mtcars, aes(wt, am)) +
+  geom_point() +
+  geom_smooth(method = "glm", se = FALSE, method.args = list(family = "binomial"), color = "red") +
+  geom_smooth(method = "glm", se = FALSE, method.args = list(family = "binomial"), color = "blue", formula = y ~ x + I(x^2))+
+  labs(x = "wt", y = "am", title = "Logistic Regression: Linear vs Quadratic Fit")+ 
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+3.3i: The quadratic term does not seem to make a great difference. The two curves are very similar. 
+
+```{r exercise 3.3ii}
+#AIC for each model 
+AIC(logistic.model, logistic.model_q)
+
+#The residual deviance for each model 
+deviance(logistic.model)
+deviance(logistic.model_q)
+```
+
+3.3ii: The AIC is lower for the linear logistic model. This indicates that it is a better fit. On the other hand, the deviance is slightly lower for the quadratic model compared to the linear model. As far as I understand, the AIC is based on the deviance but also penalizes the models that are more complicated. I suppose this is why the deviance is lower for the quadratic model despite its AIC being higher. 
+
+3.3iii Penalising a model is done to avoid overfitting which would reduce the generalisability of our model outside of the fitted data. 
+
 # Next time
 We are going to looking at extending our models with so called random effects. We need to install the package "lme4" for this. Run the code below or install it from your package manager (Linux)  
 ```{r, eval=FALSE}
