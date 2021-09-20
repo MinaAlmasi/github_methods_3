@@ -299,7 +299,13 @@ inv.logit <- function(x) exp(x) / (1 + exp(x))
 #Estimated y-values 
 estimated_y_logm <- inv.logit(predict(logistic.model))
 
-plot(mtcars$wt, estimated_y_logm)
+log_fitted_values <- data.frame(wt = mtcars$wt, estimated_y = estimated_y_logm) 
+
+ggplot(log_fitted_values, aes(wt, estimated_y)) + 
+  geom_point()+
+  theme_bw()+ 
+  labs(title = "Fitted Values")+
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 The  __linear.predictors__ are sets of coefficients which are used to predict values of the dependent variable. In this case, there is one linear predictor *wt* = -4.023 which is used to predict the value of outcome variable *am*. The __fitted_values__ are a result of the linear predictors.
@@ -317,14 +323,29 @@ The  __linear.predictors__ are sets of coefficients which are used to predict va
   \end{cases}
 \end{equation}    
 
-```{r}
+```{r exercise 3.2}
 ggplot(mtcars, aes(wt,am))+
-  geom_point(aes(colour=estimated_y))+
+  geom_point(aes(colour=estimated_y_logm))+
   xlim(0,7)+
   stat_smooth(method="glm", se=FALSE, method.args = list(family=binomial))+
   labs(x='wt', y='am', title = "Logistic Model: Sigmoid Function")+
   theme_bw()+
   theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+```{r exercise 3.2i}
+summary(logistic.model)
+
+inv.logit(logistic.model$coefficients[1])
+```
+
+Interpretation of the _Intercept_: The coefficients are given in log-odds, and for interpretability, the inverse logarithm has been taken to convert the intercept to probabilities. 
+In this case, given wt = 0, there is ~100 % chance that the transmission of the car will be manual (as *am* i.e., the transmission is coded as 0 = automatic & 1 = manual)
+
+```{r exercise 3.2ii}
+#The probability of manual transmission of 
+
 ```
 
     
