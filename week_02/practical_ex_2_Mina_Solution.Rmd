@@ -149,13 +149,13 @@ summary(m3)
 ```
 
   iv. a two-level model that models intercepts for both _scenario_ and _subject_
-```{r}
+```{r 2.1iv}
 m4 <- lmer(f0mn~gender+(1|subject)+(1|scenario), data = politeness)
 summary(m4)
 ```
 
   v. which of the models has the lowest residual standard deviation, also compare the Akaike Information Criterion `AIC`?
-```{r}
+```{r 2.1v}
 sd(residuals(m1))
 sd(residuals(m2))
 sd(residuals(m3))
@@ -168,7 +168,7 @@ AIC(m1, m2, m3, m4)
 The fourth model (m4) with subject and scenario as random effects has the lowest residual standard deviation. The residual standard deviation does not take model complexity into account. For this reason, we compare with the AIC value which penalizes more complex models. In this case, however, the most complex model (m4) is still the best model as it has the lowest AIC. 
 
   vi. which of the second-level effects explains the most variance?
-```{r}
+```{r 2.1vi}
 summary(m4)
 ```
 
@@ -176,10 +176,47 @@ Including random intercepts for *subject* accounts for a higher amount of varian
 
 #### 2) Why is our single-level model bad?
     i. create a new data frame that has three variables, _subject_, _gender_ and _f0mn_, where _f0mn_ is the average of all responses of each subject, i.e. averaging across _attitude_ and _scenario_
-    ii. build a single-level model that models _f0mn_ as dependent on _gender_ using this new dataset
-    iii. make Quantile-Quantile plots, comparing theoretical quantiles to the sample quantiles) using `qqnorm` and `qqline` for the new single-level model and compare it to the old single-level model (from 1).i). Which model's residuals ($\epsilon$) fulfil the assumptions of the General Linear Model better?)
-    iv. Also make a quantile-quantile plot for the residuals of the  multilevel model with two intercepts. Does it look alright?
-3) Plotting the two-intercepts model
+```{r 2.2i}
+avg_f0mn <- politeness %>% 
+  group_by(subject, gender) %>% 
+  summarise(mean_f0mn = mean(f0mn, na.rm = T))
+
+avg_f0mn
+```
+    
+    
+  ii. build a single-level model that models _f0mn_ as dependent on _gender_ using this new dataset
+```{r 2.2ii}
+m5 <- lm(avg_f0mn ~ gender, data = f0mn_mean)
+summary(m5)
+```
+
+  
+  iii. make Quantile-Quantile plots, comparing theoretical quantiles to the sample quantiles) using `qqnorm` and `qqline` for the new single-level model and compare it to the old single-level model (from 1).i). Which model's residuals ($\epsilon$) fulfill the assumptions of the General Linear Model better?)
+```{r 2.2iii}
+#old single level model
+m1_qq <- ggplot(politeness, aes(sample = f0mn)) + stat_qq() +
+  stat_qq_line(colour = "red") +
+  labs(x = "Theoretical Quantiles", y = "Sample Quantiles") + ggtitle("Old Single Level Model (m1)") +
+  theme_bw()
+
+#new single level model
+m5_qq <- ggplot(avg_f0mn, aes(sample = mean_f0mn)) + stat_qq() +
+  stat_qq_line(colour = "blue") +
+  labs(x = "Theoretical Quantiles", y = "Sample Quantiles") + ggtitle("New Single Level Model (m5)") +
+  theme_bw()
+
+ggpubr::ggarrange(m1_qq, m5_qq)
+```
+
+```{r}
+plot(m1, 2)
+```
+
+
+  iv. Also make a quantile-quantile plot for the residuals of the  multilevel model with two intercepts. Does it look alright?
+
+#### 3) Plotting the two-intercepts model
     i. Create a plot for each subject, (similar to part 3 in Exercise 1), this time also indicating the fitted value for each of the subjects for each for the scenarios (hint use `fixef` to get the "grand effects" for each gender and `ranef` to get the subject- and scenario-specific effects)
     
 ## Exercise 3 - now with attitude
