@@ -1,6 +1,6 @@
 ---
 title: "practical_exercise_2, Methods 3, 2021, autumn semester"
-author: 'Mina Almasi'
+author: 'Anton Drasbæk Schiønning, Daniel Blumenkranz, Matilde Sterup & Mina Almasi'
 date: "22/09/21"
 output: pdf_document
 ---
@@ -38,13 +38,23 @@ REMEMBER: This assignment will be part of your final portfolio
 
 ## Exercise 1 - describing the dataset and making some initial plots
 
-1) Describe the dataset, such that someone who happened upon this dataset could understand the variables and what they contain  
+#### 1) Describe the dataset, such that someone who happened upon this dataset could understand the variables and what they contain  
     i. Also consider whether any of the variables in _politeness_ should be encoded as factors or have the factor encoding removed. Hint: ```?factor```  
 ```{r}
 str(politeness) #calling the data frame with all the 7 variables 
 ```
 
-The data-set consists of 224 observations of 7 variables. The variables include the subject (i.e., the participant), gender (coded as F or M), scenario (what scenario the participant is in), attitude (pol = polite and inf = informal). Total duration (how long the scenario is), f0mn (pitch), hiss_count (amount of hisses made). 
+The data-set consists of 224 observations of 7 variables. The variables include:
+
+i. subject (i.e., the participant)
+ii. gender (coded as F = female or M = male)
+iii. scenario (which of the 7 scenarios the participant was in), 
+iv. attitude (pol = polite & inf = informal) 
+v. Total duration (how long the scenario is) 
+vi. f0mn (pitch)
+vii. hiss_count (amount of hisses made)
+
+Gender, attitude, subject and scenario should all be turned into factors which has been done in the chunk below: 
 
 ```{r 1.1i}
 politeness$attitude <- as.factor(politeness$attitude) 
@@ -52,29 +62,28 @@ politeness$attitude <- as.factor(politeness$attitude)
 politeness$gender <- as.factor(politeness$gender) 
 
 politeness$subject <- as.factor(politeness$subject) 
+
+politeness$scenario <- as.factor(politeness$scenario) 
 ```
 
-2) Create a new data frame that just contains the subject _F1_ and run two linear models; one that expresses _f0mn_ as dependent on _scenario_ as an integer; and one that expresses _f0mn_ as dependent on _scenario_ encoded as a factor  
-    i. Include the model matrices, $X$ from the General Linear Model, for these two models in your report and describe the different interpretations of _scenario_ that these entail
-    ii. Which coding of _scenario_, as a factor or not, is more fitting?
+#### 2) Create a new data frame that just contains the subject _F1_ and run two linear models; one that expresses _f0mn_ as dependent on _scenario_ as an integer; and one that expresses _f0mn_ as dependent on _scenario_ encoded as a factor  
 
-```{r}
+```{r 1.2}
 #Creating a new data frame with F1 
 F1 <- politeness %>% filter(subject == "F1")
 ```
 
-```{r}
+```{r 1.2}
 #Linear model with scenario as integer
-scenario_int <- lm(f0mn~scenario, data = F1)
+scenario_int <- lm(f0mn~as.integer(scenario), data = F1)
 summary(scenario_int)
-```
 
-```{r}
 #Linear model with scenario as factor 
-scenario_fact <- lm(f0mn~as.factor(scenario), data = F1)
+scenario_fact <- lm(f0mn~scenario, data = F1)
 summary(scenario_fact)
 ```
 
+  i. Include the model matrices, $X$ from the General Linear Model, for these two models in your report and describe the different interpretations of _scenario_ that these entail
 ```{r 1.2i}
 #Model Matrix with scenario as integer
 matrix_int <- model.matrix(scenario_int)
@@ -86,22 +95,28 @@ matrix_fact
 matrix_int
 ```
 
-1.2i: In the matrix with scenario as factor it is including each level of the scenario in the design matrix as its own column whereas in the matrix with scenario as integer, a 2x2 design matrix is created (i.e., it is treating scenario as a one-level variable.)
 
-1.2ii: We should code scenario as a factor since not doing so would leave out useful information. It is more meaningful to model the data taking each scenario into account separately. 
+In the design matrix with scenario as factor each level of scenario has its own column. On the other hand, in the matrix with scenario as integer, a 2x2 design matrix is created (i.e., it is treating scenario as a one-level variable.). 
 
-3) Make a plot that includes a subplot for each subject that has _scenario_ on the x-axis and _f0mn_ on the y-axis and where points are colour coded according to _attitude_
-    i. Describe the differences between subjects
-    
+This has consequences for how the model treats *scenario*. As a integer, the model considers scenario 2 to be twice as much 'worth' than scenario 1. The model can be visualized as a line in a two-dimensional plot. As a factor, each scenario has an estimate for itself. That is each scenario has its distinct effect on f0mn.
+
+  ii. Which coding of _scenario_, as a factor or not, is more fitting?
+  
+We should code scenario as a factor since it is a nominal variable. It is only meaningful to model the data by taking each scenario into account separately. 
+
+#### 3) Make a plot that includes a subplot for each subject that has _scenario_ on the x-axis and _f0mn_ on the y-axis and where points are colour coded according to _attitude_
 ```{r}
 ggplot(politeness, (aes(x = scenario, y = f0mn, color = attitude)))+ 
   geom_point()+ 
   facet_wrap(.~subject)+ 
   theme_bw()
 ```
-Generally, it seems that all males (i.e., subjects coded as "M") have a lower pitch than females (subjects coded as "F"). 
 
-It is difficult to see a relationship between attitude and pitch in this exploratory phase.  
+
+i. Describe the differences between subjects
+Generally, it seems that there is a great variance between subjects. For example, if you compare females F4 and F5, F4 has observations in the range 100-300 whereas F5 has a range between 200-400. All subjects also do not have the same amount of datapoints. Moreover, it seems that all males have a lower pitch than females. 
+
+Finally, it should be noted that it is difficult to see a relationship between attitude and pitch in this exploratory phase.  
 
 ## Exercise 2  - comparison of models
 
@@ -114,60 +129,53 @@ mixed.model <- lmer(formula=..., data=...)
 example.formula <- formula(dep.variable ~ first.level.variable + (1 | second.level.variable))
 ```
 
-1) Build four models and do some comparisons
-    i. a single level model that models _f0mn_ as dependent on _gender_
-    ii. a two-level model that adds a second level on top of i. where unique intercepts are modelled for each _scenario_
-    iii. a two-level model that only has _subject_ as an intercept 
-    iv. a two-level model that models intercepts for both _scenario_ and _subject_
-    v. which of the models has the lowest residual standard deviation, also compare the Akaike Information Criterion `AIC`?
-    vi. which of the second-level effects explains the most variance?
-
+#### 1) Build four models and do some comparisons
+  i. a single level model that models _f0mn_ as dependent on _gender_
 ```{r 2.1i}
-#Building a single level model 
 m1 <- lm(f0mn~gender, data = politeness)
 summary(m1)
 ```
 
+  ii. a two-level model that adds a second level on top of i. where unique intercepts are modelled for each _scenario_
 ```{r 2.1ii}
-#Building a two-level model with scenario as a random effect
 m2 <- lmer(f0mn~gender+(1|scenario), data = politeness)
 summary(m2)
-ranef(m2)
 ```
 
+  iii. a two-level model that only has _subject_ as an intercept 
 ```{r 2.1iii}
-#Building a two-level model with subject as a random effect
 m3 <- lmer(f0mn~gender+(1|subject), data = politeness)
 summary(m3)
-ranef(m3)
 ```
 
+  iv. a two-level model that models intercepts for both _scenario_ and _subject_
 ```{r}
-#Building a two-level model with both scenario and subject as a random effect
 m4 <- lmer(f0mn~gender+(1|subject)+(1|scenario), data = politeness)
 summary(m4)
-ranef(m4)
 ```
 
+  v. which of the models has the lowest residual standard deviation, also compare the Akaike Information Criterion `AIC`?
 ```{r}
-AIC(m1, m2, m3, m4)
-
 sd(residuals(m1))
 sd(residuals(m2))
 sd(residuals(m3))
 sd(residuals(m4))
+
+AIC(m1, m2, m3, m4)
 ```
 
-The fourth model with subject and scenario as random effects has the lowest residual standard deviation and AIC value. 
 
-Which of the second-level effects explain the most variance ?
+The fourth model (m4) with subject and scenario as random effects has the lowest residual standard deviation. The residual standard deviation does not take model complexity into account. For this reason, we compare with the AIC value which penalizes more complex models. In this case, however, the most complex model (m4) is still the best model as it has the lowest AIC. 
+
+  vi. which of the second-level effects explains the most variance?
 ```{r}
 summary(m4)
 ```
-The subject explains the most variance (compared to scenario).
 
-2) Why is our single-level model bad?
-    i. create a new data frame that has three variables, _subject_, _gender_ and _f0mn_, where _f0mn_ is the average of all responses of each subject, i.e. averaging across _attitude_ and_scenario_
+Including random intercepts for *subject* accounts for a higher amount of variance (588.83) compared to the random intercepts for *scenario* (96.17). 
+
+#### 2) Why is our single-level model bad?
+    i. create a new data frame that has three variables, _subject_, _gender_ and _f0mn_, where _f0mn_ is the average of all responses of each subject, i.e. averaging across _attitude_ and _scenario_
     ii. build a single-level model that models _f0mn_ as dependent on _gender_ using this new dataset
     iii. make Quantile-Quantile plots, comparing theoretical quantiles to the sample quantiles) using `qqnorm` and `qqline` for the new single-level model and compare it to the old single-level model (from 1).i). Which model's residuals ($\epsilon$) fulfil the assumptions of the General Linear Model better?)
     iv. Also make a quantile-quantile plot for the residuals of the  multilevel model with two intercepts. Does it look alright?
