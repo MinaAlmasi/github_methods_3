@@ -40,7 +40,7 @@ REMEMBER: This assignment will be part of your final portfolio
 
 #### 1) Describe the dataset, such that someone who happened upon this dataset could understand the variables and what they contain  
     i. Also consider whether any of the variables in _politeness_ should be encoded as factors or have the factor encoding removed. Hint: ```?factor```  
-```{r}
+```{r 1.1}
 str(politeness) #calling the data frame with all the 7 variables 
 ```
 
@@ -105,7 +105,7 @@ This has consequences for how the model treats *scenario*. As a integer, the mod
 We should code scenario as a factor since it is a nominal variable. It is only meaningful to model the data by taking each scenario into account separately. 
 
 #### 3) Make a plot that includes a subplot for each subject that has _scenario_ on the x-axis and _f0mn_ on the y-axis and where points are colour coded according to _attitude_
-```{r}
+```{r 1.3}
 ggplot(politeness, (aes(x = scenario, y = f0mn, color = attitude)))+ 
   geom_point()+ 
   facet_wrap(.~subject)+ 
@@ -194,30 +194,52 @@ summary(m5)
   
   iii. make Quantile-Quantile plots, comparing theoretical quantiles to the sample quantiles) using `qqnorm` and `qqline` for the new single-level model and compare it to the old single-level model (from 1).i). Which model's residuals ($\epsilon$) fulfill the assumptions of the General Linear Model better?)
 ```{r 2.2iii}
+par(mfrow = c(1,2))
+
 #old single level model
-m1_qq <- ggplot(politeness, aes(sample = f0mn)) + stat_qq() +
-  stat_qq_line(colour = "red") +
-  labs(x = "Theoretical Quantiles", y = "Sample Quantiles") + ggtitle("Old Single Level Model (m1)") +
-  theme_bw()
+qqnorm(resid(m1))
+qqline(resid(m1))
+title("Old Single Level (m1)", line = 3)
 
 #new single level model
-m5_qq <- ggplot(avg_f0mn, aes(sample = mean_f0mn)) + stat_qq() +
-  stat_qq_line(colour = "blue") +
-  labs(x = "Theoretical Quantiles", y = "Sample Quantiles") + ggtitle("New Single Level Model (m5)") +
-  theme_bw()
-
-ggpubr::ggarrange(m1_qq, m5_qq)
+qqnorm(resid(m5))
+qqline(resid(m5))
+title("New Single Level (m5)", line = 3)
 ```
 
-```{r}
-plot(m1, 2)
-```
 
+It seems that the new model fulfills the assumptions of the GLM better.  The points fall closer to the line and the deviation from the line are fairly unsystematic. For the old model, there are several points in both ends of the plot which deviate radically from the line. By averaging the original data (which seems rather not normally distributed), we approach normality which follows the central limit theorem. This is, however at the cost of information loss. 
 
   iv. Also make a quantile-quantile plot for the residuals of the  multilevel model with two intercepts. Does it look alright?
+```{r 2.1iv}
+par(mfrow = c(1,1))
+
+qqnorm(resid(m4))
+qqline(resid(m4))
+title("Multilevel (m4)", line = 3)
+```
+
+
+The residuals are not perfectly normally distributed as the points on the right of the plot deviate from the line. However, compared to the old single level model (m1), the qqplot for the multilevel model (m4) seems better. 
+
 
 #### 3) Plotting the two-intercepts model
     i. Create a plot for each subject, (similar to part 3 in Exercise 1), this time also indicating the fitted value for each of the subjects for each for the scenarios (hint use `fixef` to get the "grand effects" for each gender and `ranef` to get the subject- and scenario-specific effects)
+```{r 2.3}
+fitted <- fitted(m4)
+
+politeness_na_removed <- politeness %>% 
+  na.omit()
+
+politeness_na_removed$fitted_f0mn <- fitted
+
+ggplot(politeness_na_removed, (aes(x = scenario, y = f0mn, color = attitude)))+ 
+  geom_point()+
+  geom_point(aes(scenario, fitted_f0mn), color = "darkgrey", shape = 17)+
+  facet_wrap(.~subject)+ 
+  theme_bw()
+```
+    
     
 ## Exercise 3 - now with attitude
 
