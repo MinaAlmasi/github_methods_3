@@ -1,6 +1,6 @@
 ---
 title: "practical_exercise_2, Methods 3, 2021, autumn semester"
-author: "Anton Drasbæk Schiønning, Daniel Blumenkranz, Matilde Sterup & Mina Almasi"
+author: "Anton Drasbæk Schiønning, Daniel Blumenkranz, Matilde Sterup & Mina Almasi (Class 1)"
 date: "22/09/21"
 output:
   html_document:
