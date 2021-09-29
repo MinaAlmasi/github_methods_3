@@ -13,6 +13,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+pacman::p_load(tidyverse, readbulk)
 ```
 
 # Exercises and objectives
@@ -30,11 +31,66 @@ Go to https://osf.io/ecxsj/files/ and download the files associated with Experim
 The data is associated with Experiment 2 of the article at the following DOI https://doi.org/10.1016/j.concog.2019.03.007  
 
 1) Put the data from all subjects into a single data frame  
+```{r 1.1}
+df <- read_bulk(directory = "/Users/minaalmasi/Documents/Cognitive_Science/Methods_3/methods3_code/github_methods_3/week_03/experiment_2")
+```
+
 2) Describe the data and construct extra variables from the existing variables  
-    i. add a variable to the data frame and call it _correct_ (have it be a _logical_ variable). Assign a 1 to each row where the subject indicated the correct answer and a 0 to each row where the subject indicated the incorrect answer (__Hint:__ the variable _obj.resp_ indicates whether the subject answered "even", _e_ or "odd", _o_, and the variable _target_type_ indicates what was actually presented.
-    ii. describe what the following variables in the data frame contain, _trial.type_, _pas_, _trial_, _target.contrast_, _cue_, _task_, _target_type_, _rt.subj_, _rt.obj_, _obj.resp_, _subject_ and _correct_. (That means you can ignore the rest of the variables in your description). For each of them, indicate and argue for what `class` they should be classified into, e.g. _factor_, _numeric_ etc.  
-    iii. for the staircasing part __only__, create a plot for each subject where you plot the estimated function (on the _target.contrast_ range from 0-1) based on the fitted values of a model (use `glm`) that models _correct_ as dependent on _target.contrast_. These plots will be our _no-pooling_ model. Comment on the fits - do we have enough data to plot the logistic functions?  
-    iv. on top of those plots, add the estimated functions (on the _target.contrast_ range from 0-1) for each subject based on partial pooling model (use `glmer` from the package `lme4`) where unique intercepts and slopes for _target.contrast_ are modelled for each _subject_  
+
+  i. add a variable to the data frame and call it _correct_ (have it be a _logical_ variable). Assign a 1 to each row where the subject indicated the correct answer and a 0 to each row where the subject indicated the incorrect answer (__Hint:__ the variable _obj.resp_ indicates whether the subject answered "even", _e_ or "odd", _o_, and the variable _target_type_ indicates what was actually presented.
+```{r exercise 1.2i}
+df$correct <- ifelse(df$target.type == "odd" & df$obj.resp == "o" | df$target.type == "even" & df$obj.resp == "e", 1, 0)
+```
+
+    
+  ii. describe what the following variables in the data frame contain, _trial.type_, _pas_, _trial_, _target.contrast_, _cue_, _task_, _target_type_, _rt.subj_, _rt.obj_, _obj.resp_, _subject_ and _correct_. (That means you can ignore the rest of the variables in your description). For each of them, indicate and argue for what `class` they should be classified into, e.g. _factor_, _numeric_ etc. 
+
+The following variables in the dataset are:
+_trial.type_ 
+Whether the trial was a part of the staircase procedure (i.e., before beginning the experiment, coded as "staircase") or whether it was a part of the experiment (coded as "experiment"). ¨
+*Class*: This variable is currently coded as a character, but should be coded as a factor if used in modeling. However, we might only be interested in the experimental phase and thus should consider filtering out the *staircase*. 
+
+_pas_: (class = factor)
+Subjective rating of how clearly the target was seen by the participant. Measured using the Perceptual Awareness Scale. According to the article (Andersen et. al) the PAS has 4 categorically different ratings: 
+  
+  No Experience (NE), Weak Glimpse (WG), Almost Clear Experience (ACE) and Clear Experience (CE)
+
+_trial_:
+Number of trial. Resets when the experiment begins. 
+
+_target.contrast_:
+The contrast of the target stimulus relative to the background (adjusted to each participant'
+s threshold. After the staircase procedure, this contrast remained fixed for the experimental phase.)
+
+_cue_: 
+Type of cues. 36 different types. 
+
+_task_:
+Indicates the task setting. *singles* refers to the task setting being with 2 numbers shown in the cue (e.g., 2:9), *pairs* refers to 4 numbers (e.g., 24:57), and *quadruplet* refers to 8 numbers (e.g., 2468:3579). 
+
+_target_type_: 
+Whether the target was an even or odd number. 
+
+_rt.subj_: 
+Reaction time for the rating of the _pas_ (i.e., their confidence on how clearly they saw the target). 
+
+_rt.obj_: 
+Reaction time of the participant's answer to whether the target was odd or even (i.e., the objective of the experiment). 
+
+_obj.resp_: 
+The participant's answer (coded as "o" = odd and "e" = even). 
+
+_subject_: 
+Participant index. 
+
+_correct_: 
+Indicates whether the object response matches the *target_type* (i.e, whether the participant answered correctly.) 
+
+
+  
+  iii. for the staircasing part __only__, create a plot for each subject where you plot the estimated function (on the _target.contrast_ range from 0-1) based on the fitted values of a model (use `glm`) that models _correct_ as dependent on _target.contrast_. These plots will be our _no-pooling_ model. Comment on the fits - do we have enough data to plot the logistic functions?  
+  
+  iv. on top of those plots, add the estimated functions (on the _target.contrast_ range from 0-1) for each subject based on partial pooling model (use `glmer` from the package `lme4`) where unique intercepts and slopes for _target.contrast_ are modelled for each _subject_  
     v. in your own words, describe how the partial pooling model allows for a better fit for each subject  
 
 ## Exercise 2
