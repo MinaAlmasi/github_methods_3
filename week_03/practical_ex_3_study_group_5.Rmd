@@ -315,18 +315,9 @@ A too complex model entails singularity. A model is 'too complex' if the number 
 
 ```{r}
 data_count <- data %>% 
-  group_by(subject, task) %>% 
-  summarise(count = count(pas))
+  group_by(subject, task, pas) %>% 
+  summarise("count" = n())
 ```
-
-
-```{r}
-## you can start from this if you want to, but you can also make your own from scratch
-data_count <- data.frame(count = numeric(), 
-                         pas = numeric(), ## remember to make this into a factor afterwards
-                         task = numeric(), ## and this too
-                         subject = numeric()) ## and this too
-```        
 
 2) Now fit a multilevel model that models a unique "slope" for _pas_ for each _subject_ with the interaction between _pas_ and _task_ and their main effects being modelled  
     i. which family should be used?  
