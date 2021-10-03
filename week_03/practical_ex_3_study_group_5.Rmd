@@ -320,9 +320,9 @@ data_count <- data %>%
 
 2) Now fit a multilevel model that models a unique "slope" for _pas_ for each _subject_ with the interaction between _pas_ and _task_ and their main effects being modelled  
 ```{r 3.2}
-multi_pas_interaction <- glmer(count~pas*task + (pas|subject), data = data_count, family = poisson, control = glmerControl(optimizer="bobyqa")) 
+model1 <- glmer(count~pas*task + (pas|subject), data = data_count, family = poisson, control = glmerControl(optimizer="bobyqa")) 
 
-summary(multi_pas_interaction)
+summary(model1)
 
 ```
 
@@ -332,6 +332,7 @@ summary(multi_pas_interaction)
   
   ii. why is a slope for _pas_ not really being modelled?  
   
+  The slope of _pas_ is instead modelled on a level basis due to it being a factor. That is, we have the estimated the slope for pas2, pas3, pas2:taskquadruplet etc.
   
   iii. if you get a convergence error, try another algorithm (the default is the _Nelder_Mead_) - try (_bobyqa_) for which the `dfoptim` package is needed. In `glmer`, you can add the following for the `control` argument: `glmerControl(optimizer="bobyqa")` (if you are interested, also have a look at the function `allFit`)
   
@@ -339,13 +340,36 @@ summary(multi_pas_interaction)
 
   iv. when you have a converging fit - fit a model with only the main effects of _pas_ and _task_. Compare this with the model that also includes the interaction  
 ```{r}
-multi_pas <- glmer(count~pas+task + (pas|subject), data = data_count, family = poisson, control = glmerControl(optimizer="bobyqa")) 
+model2 <- glmer(count~pas+task + (pas|subject), data = data_count, family = poisson, control = glmerControl(optimizer="bobyqa")) 
 
-summary(multi_pas)
+summary(model2)
+```
+
+```{r}
+#residuals
+residuals_model1 <- residuals(model1)
+residuals_model2 <- residuals(model2)
+
+#residual variance
+rvar_model1<- sum((residuals_model1)^2)
+rvar_model2<- sum((residuals_model2)^2)
+
+#residual standard deviation 
+sd_model1<- sqrt((sum(residuals_model1)^2/length(residuals_model1)-2))
+sd_model2<- sqrt((sum(residuals_model2)^2/length(residuals_model2)-2))
+
+#AICs
+AICs <- AIC(model1, model2) #model1 = with interaction, model2 = without interaction
+
+#Table 
+tibble("model"=c("with Interaction","Without Interaction"), "residual variance"=c(rvar_model1, rvar_model2), "residual sd"=c(sd_model1, sd_model2), "AIC"=c(AICs[1,2], AICs[2,2]))
 ```
 
   
   v. indicate which of the two models, you would choose and why  
+  
+  Both the residual variance, residual standard deviation, and AIC is lower in the model (*model 1*) including the interaction than the model without the interaction (*model 2*). Additionally, the model including the interaction can also be argued for theoretically. It is likely that there is a relationship between the subject's confidence ratings (pas) and the type of cue. For these reasons, we would choose the model with the interaction. 
+
   
   vi. based on your chosen model - write a short report on what this says about the distribution of ratings as dependent on _pas_ and _task_  
     vii. include a plot that shows the estimated amount of ratings for four subjects of your choosing 
