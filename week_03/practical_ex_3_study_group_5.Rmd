@@ -442,28 +442,86 @@ subject29 <- data_count %>% filter(subject == 29)
 
 estimated_vals <- function(subject_data, model) {
   subject_predict <- predict(model, newdata = subject_data)
-  subject_convert <- expm1(subject_predict)
+  subject_data$estimated_count <- expm1(subject_predict)
   
   plot <- ggplot(subject_data)+
     geom_bar(aes(x=pas, y=estimated_count, fill = task), stat = "identity", position = "dodge")+
     scale_fill_manual(values=c("#4db8ff", "#82E0AA", "#FF6666")) +
     theme_bw()
   
-  return plot
+  return(plot)
 }
 
-subject7_predicted <- predict(model1, newdata = subject7)
-subject7$estimated_count <- expm1(subject7_predicted)
+subject_7_plot <- estimated_vals(subject7, model1)
+subject_10_plot <- estimated_vals(subject10, model1)
+subject_12_plot <- estimated_vals(subject12, model1)
+subject_29_plot <- estimated_vals(subject29, model1)
 
-estimated_vals
-
+ggpubr::ggarrange(subject_7_plot, subject_10_plot, subject_12_plot, subject_29_plot)
 
 ```
 
 
-#### 3) Finally, fit a multilevel model that models _correct_ as dependent on _task_ with a unique intercept for each _subject_  
-    i. does _task_ explain performance?  
-    ii. add _pas_ as a main effect on top of _task_ - what are the consequences of that?  
-    iii. now fit a multilevel model that models _correct_ as dependent on _pas_ with a unique intercept for each _subject_
-    iv. finally, fit a model that models the interaction between _task_ and _pas_  and their main effects  
-    v. describe in your words which model is the best in explaining the variance in accuracy  
+#### 3) Finally, fit a multilevel model that models _correct_ as dependent on _task_ with a unique intercept for each _subject_ 
+```{r}
+correct_model1 <- glmer(correct ~ task + (1|subject), family = "binomial", data = experiment)
+summary(correct_model1)
+
+```
+
+
+##### i. does _task_ explain performance?  
+Yes. Both *taskpairs* (-0.166) and *taskquadruplet* (-0.241) significantly predict performance (*correct*) (p<.05). The negative coefficients indicate that the amount of correct answers decreases as task complexity increases.   
+
+  
+##### ii. add _pas_ as a main effect on top of _task_ - what are the consequences of that?  
+```{r}
+correct_model2 <- glmer(correct ~ task + pas+ (1|subject), family = "binomial", data = experiment)
+summary(correct_model2)
+```
+
+
+By adding *pas* as a main effect along with *task*, *task* no longer significantly predicts *correct*. Instead, *pas* now significantly predicts *correct*. This may be due to the fact that *pas1* is now included in our baseline along with *tasksingles*. This means that the estimates for *taskpairs* and *taskquadruplet* is now only compared within *pas1*.
+
+
+##### iii. now fit a multilevel model that models _correct_ as dependent on _pas_ with a unique intercept for each _subject_
+```{r}
+correct_model3 <- glmer(correct ~ pas + (1|subject), family = "binomial", data = experiment)
+summary(correct_model3)
+```
+
+  
+##### iv. finally, fit a model that models the interaction between _task_ and _pas_  and their main effects 
+```{r}
+correct_model4 <- glmer(correct ~ pas*task + (1|subject), family = "binomial", data = experiment)
+summary(correct_model4)
+```
+
+  
+##### v. describe in your words which model is the best in explaining the variance in accuracy  
+```{r}
+#residuals
+residuals_model1 <- residuals(correct_model1)
+residuals_model2 <- residuals(correct_model2)
+residuals_model3 <- residuals(correct_model3)
+residuals_model4 <- residuals(correct_model4)
+
+#residual variance
+rvar_model1<- sum((residuals_model1)^2)
+rvar_model2<- sum((residuals_model2)^2)
+rvar_model3<- sum((residuals_model3)^2)
+rvar_model4<- sum((residuals_model4)^2)
+
+#residual standard deviation 
+sd_model1<- sqrt((sum(residuals_model1)^2/length(residuals_model1)-2))
+sd_model2<- sqrt((sum(residuals_model2)^2/length(residuals_model2)-2))
+sd_model3<- sqrt((sum(residuals_model3)^2/length(residuals_model3)-2))
+sd_model4<- sqrt((sum(residuals_model4)^2/length(residuals_model4)-2))
+
+#AICs
+AICs <- AIC(correct_model1, correct_model2, correct_model3, correct_model4) #model1 = with interaction, model2 = without interaction
+
+#Table 
+tibble("model"=c("Correct Model 1","Correct Model 2", "Correct Model 3", "Correct Model 4"), "residual variance"=c(rvar_model1, rvar_model2, rvar_model3, rvar_model4), "residual sd"=c(sd_model1, sd_model2, sd_model3, sd_model4), "AIC"=c(AICs[1,2], AICs[2,2], AICs[3,2], AICs[4,2]))
+```
+
