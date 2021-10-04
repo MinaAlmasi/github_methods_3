@@ -447,6 +447,7 @@ estimated_vals <- function(subject_data, model) {
   plot <- ggplot(subject_data)+
     geom_bar(aes(x=pas, y=estimated_count, fill = task), stat = "identity", position = "dodge")+
     scale_fill_manual(values=c("#4db8ff", "#82E0AA", "#FF6666")) +
+    ggtitle(paste("Subject", as.character(subject_data[1,1])))
     theme_bw()
   
   return(plot)
@@ -463,7 +464,7 @@ ggpubr::ggarrange(subject_7_plot, subject_10_plot, subject_12_plot, subject_29_p
 
 
 #### 3) Finally, fit a multilevel model that models _correct_ as dependent on _task_ with a unique intercept for each _subject_ 
-```{r}
+```{r 3.3}
 correct_model1 <- glmer(correct ~ task + (1|subject), family = "binomial", data = experiment)
 summary(correct_model1)
 
@@ -475,7 +476,7 @@ Yes. Both *taskpairs* (-0.166) and *taskquadruplet* (-0.241) significantly predi
 
   
 ##### ii. add _pas_ as a main effect on top of _task_ - what are the consequences of that?  
-```{r}
+```{r 3.3ii}
 correct_model2 <- glmer(correct ~ task + pas+ (1|subject), family = "binomial", data = experiment)
 summary(correct_model2)
 ```
@@ -485,21 +486,23 @@ By adding *pas* as a main effect along with *task*, *task* no longer significant
 
 
 ##### iii. now fit a multilevel model that models _correct_ as dependent on _pas_ with a unique intercept for each _subject_
-```{r}
+```{r 3.3iii}
 correct_model3 <- glmer(correct ~ pas + (1|subject), family = "binomial", data = experiment)
 summary(correct_model3)
 ```
 
   
 ##### iv. finally, fit a model that models the interaction between _task_ and _pas_  and their main effects 
-```{r}
+```{r 3.3iv}
 correct_model4 <- glmer(correct ~ pas*task + (1|subject), family = "binomial", data = experiment)
 summary(correct_model4)
 ```
 
   
 ##### v. describe in your words which model is the best in explaining the variance in accuracy  
-```{r}
+
+The following model comparisons were made: 
+```{r 3.3v}
 #residuals
 residuals_model1 <- residuals(correct_model1)
 residuals_model2 <- residuals(correct_model2)
@@ -522,6 +525,8 @@ sd_model4<- sqrt((sum(residuals_model4)^2/length(residuals_model4)-2))
 AICs <- AIC(correct_model1, correct_model2, correct_model3, correct_model4) #model1 = with interaction, model2 = without interaction
 
 #Table 
-tibble("model"=c("Correct Model 1","Correct Model 2", "Correct Model 3", "Correct Model 4"), "residual variance"=c(rvar_model1, rvar_model2, rvar_model3, rvar_model4), "residual sd"=c(sd_model1, sd_model2, sd_model3, sd_model4), "AIC"=c(AICs[1,2], AICs[2,2], AICs[3,2], AICs[4,2]))
+tibble("model"=c("Correct predicted by Task","Correct predicted by Task & Pas", "Correct predicted by Pas", "Correct predicted by Pas*Task"), "residual variance"=c(rvar_model1, rvar_model2, rvar_model3, rvar_model4), "residual sd"=c(sd_model1, sd_model2, sd_model3, sd_model4), "AIC"=c(AICs[1,2], AICs[2,2], AICs[3,2], AICs[4,2]))
 ```
+
+From the tibble output, we see that the last three models are very similar when looking at their residual variance, residual standard deviation and AIC. This may suggest that *pas* is a better predictor than *task* alone. However, in choosing the best model, one must consider the theoretical justifications for each model. It could be argued that model 4 should be chosen since there is an interaction term. It would only make sense that *pas* is modulated by the complexity of the *task* since a harder task is likely to result in more uncertainty. 
 
