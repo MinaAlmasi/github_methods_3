@@ -48,7 +48,9 @@ data$correct <- ifelse(data$obj.resp == "e" & data$target.type == "even"|data$ob
 ##### ii. describe what the following variables in the data frame contain, _trial.type_, _pas_, _trial_, _target.contrast_, _cue_, _task_, _target_type_, _rt.subj_, _rt.obj_, _obj.resp_, _subject_ and _correct_. (That means you can ignore the rest of the variables in your description). For each of them, indicate and argue for what `class` they should be classified into, e.g. _factor_, _numeric_ etc.  
 
 The following variables in the dataset are:
+
 $~$
+
 __trial.type__:
 Whether the trial was a part of the staircase procedure (i.e., before beginning the experiment, coded as "staircase") or whether it was a part of the experiment (coded as "experiment"). ¨
 
@@ -58,12 +60,17 @@ Whether the trial was a part of the staircase procedure (i.e., before beginning 
 $~$
 
 __pas__:
-Subjective rating of how clearly the target was seen by the participant. Measured using the Perceptual Awareness Scale. According to the article (Andersen et. al) the PAS has 4 categorically different ratings: 
+Subjective rating of how clearly the target was seen by the participant. Measured using the Perceptual Awareness Scale. According to the article (Andersen et. al) the PAS has 4 categorically different ratings:
   
-  No Experience (NE), Weak Glimpse (WG), Almost Clear Experience (ACE) and Clear Experience (CE)
+1. No Experience (NE)
+2. Weak Glimpse (WG)
+3. Almost Clear Experience (ACE)
+4. Clear Experience (CE)
 
 
 *Class*: This variable is coded as numeric from 1-4 (referring to the 4 levels in the order above). This should be recoded to be a factor, as we are dealing with ordinal data. 
+
+$~$
 
 __trial__:
 Number of trial. Resets when the experiment begins. 
@@ -71,18 +78,22 @@ Number of trial. Resets when the experiment begins.
 
 *Class* This variable should also be coded as a factor considering it is nominal data.
 
+$~$
 
 __target.contrast__:
 The contrast of the target stimulus relative to the background (adjusted to each participant'
 s threshold. After the staircase procedure, this contrast remained fixed for the experimental phase.)
 
-
 *Class*: We are dealing with continous data between 0 and 1 so it should be numeric class which it is already.
+
+$~$
 
 __cue__: 
 Type of cues. 36 different types. 
 
 *Class*: This is nominal data so it should be coded as a factor.
+
+$~$
 
 __task__:
 
@@ -90,36 +101,49 @@ Indicates the task setting. *singles* refers to the task setting being with 2 nu
 
 *Class*: This is also nominal data and should be coded as a factor.
 
+$~$
+
 __target_type__: 
 Whether the target was an even or odd number. 
 
 *Class*: This is binary data (coded as "even" or "odd") and should be coded as factor.
+
+$~$
 
 __rt.subj__: 
 Reaction time for the rating of the _pas_ (i.e., their confidence on how clearly they saw the target). 
 
 *Class*: We are dealing reaction times in seconds which means that it is continuous data that should be coded as numeric.
 
+$~$
+
 __rt.obj__: 
 Reaction time of the participant's answer to whether the target was odd or even (i.e., the objective of the experiment).
 
 *Class*: Same as *rt_subj*. That is, reaction times that are continuous and should thus be coded as numeric.
+
+$~$
 
 __obj.resp__: 
 The participant's answer to the task
 
 *Class*: This is binary data (coded as "o" = odd and "e" = even) and should be coded as factor.
 
+$~$
+
 __subject__: 
 Participant index. 
 
 *Class*: This is nominal data and should therefore be recoded to be a factor.
+
+$~$
 
 __correct__: 
 Indicates whether the object response matches the *target_type* (i.e, whether the participant answered correctly.) 
 
 *Class*: This is binary data (coded as 0 = incorrect and 1 = correct) and should be coded as factor.
 
+$~$
 
 __Fixing the Classes__
 ```{r}
@@ -343,14 +367,18 @@ A too complex model entails singularity. A model is 'too complex' if the number 
 data_count <- data %>% 
   group_by(subject, task, pas) %>% 
   summarise("count" = n())
+
+data_count$task <- relevel(data_count$task, ref = "singles")
 ```
+
+To make the estimates more meaningful, we reordered the levels of task to go from “singles” to “pairs” to “quadruplets”. This is not necessary but merely a question of interpretability. 
+
 
 #### 2) Now fit a multilevel model that models a unique "slope" for _pas_ for each _subject_ with the interaction between _pas_ and _task_ and their main effects being modelled  
 ```{r 3.2}
 model1 <- glmer(count~pas*task + (pas|subject), data = data_count, family = poisson, control = glmerControl(optimizer="bobyqa")) 
 
 summary(model1)
-
 ```
 
 ##### i. which family should be used?  
@@ -359,20 +387,20 @@ For count data, the "poisson" family should be used.
 
 ##### ii. why is a slope for _pas_ not really being modelled?  
   
-The slope of _pas_ is instead modelled on a level basis due to it being a factor. That is, we have the estimated the slope for pas2, pas3, pas2:taskquadruplet etc.
+The slope of _pas_ is not modelled as a general slope but instead modelled on a level basis due to it being a factor. That is, we have the estimated the slope for pas2, pas3, pas2:taskquadruplet etc.
   
 ##### iii. if you get a convergence error, try another algorithm (the default is the _Nelder_Mead_) - try (_bobyqa_) for which the `dfoptim` package is needed. In `glmer`, you can add the following for the `control` argument: `glmerControl(optimizer="bobyqa")` (if you are interested, also have a look at the function `allFit`)
   
 The bobyqa optimiser is used as the model failed to converge without it. 
 
 ##### iv. when you have a converging fit - fit a model with only the main effects of _pas_ and _task_. Compare this with the model that also includes the interaction  
-```{r}
+```{r 3.2iv}
 model2 <- glmer(count~pas+task + (pas|subject), data = data_count, family = poisson, control = glmerControl(optimizer="bobyqa")) 
 
 summary(model2)
 ```
 
-```{r}
+```{r 3.2iv comparison}
 #residuals
 residuals_model1 <- residuals(model1)
 residuals_model2 <- residuals(model2)
@@ -393,13 +421,45 @@ tibble("model"=c("with Interaction","Without Interaction"), "residual variance"=
 ```
 
 ##### v. indicate which of the two models, you would choose and why
-  Both the residual variance, residual standard deviation, and AIC is lower in the model (*model 1*) including the interaction than the model without the interaction (*model 2*). Additionally, the model including the interaction can also be argued for theoretically. It is likely that there is a relationship between the subject's confidence ratings (pas) and the type of cue. For these reasons, we would choose the model with the interaction. 
+  Both the residual variance, residual standard deviation, and AIC is lower in the model (*model 1*) including the interaction than the model without the interaction (*model 2*). Additionally, the model including the interaction can also be argued for theoretically. It is likely that there is a relationship between the subject's confidence ratings (pas) and the type of cue. For these reasons, we would choose the model with the interaction (*model 1*). 
 
   
-##### vi. based on your chosen model - write a short report on what this says about the distribution of ratings as dependent on _pas_ and _task_  
-  
+##### vi. based on your chosen model - write a short report on what this says about the distribution of ratings (count) as dependent on _pas_ and _task_  
+
+
+In the analysis, we investigated the effect of *pas* and *task* on the distribution of ratings (*count*). To test this, we fitted a general linear mixed effects-model with the poisson family as the link function thereby assuming that *count* is distributed as a poisson distribution. Our model has *count* as the outcome variable, *pas* and *task* as fixed effects with those also being included as an interaction effect. Additionally, *pas* is modelled as a random slope for each *subject* (i.e., random intercepts are also modelled for each subject). 
+
+Based on the significant estimates in the model output, we can tell that the ratings are not equally distributed across *task* and *pas*. Additionally, *pas* does not solely predict *count*. This makes sense given the experimental design: varying difficulty of task by shortening the duration of the target. On the other hand, *task* solely predicts *count*. This is expected considering that the baseline level is *pas1:tasksingles*. In *task singles*, the cue is simpler and perhaps less distracting which would explain the positive estimates for task pairs (0.231) and quadruplets (0.346). In other words, the confidence of the participants is lower (that is *pas1*) when the task setting is *pairs* and *quadruplets* than when the task setting is *singles*. Finally, all interaction terms are significant which makes sense considering the participants’ pas-scores are affected by the cue type (i.e. *task*). For instance, when the cue type is *quadruplets* it seems that responses are more likely to be near *pas 1* than *pas 4* (the interaction estimates for *quadruplet* are increasingly negative for pas scores going from 1 to 4).   
+
+
 
 ##### vii. include a plot that shows the estimated amount of ratings for four subjects of your choosing 
+```{r 3.2vii}
+subject7 <- data_count %>% filter(subject == 7)
+subject10 <- data_count %>% filter(subject == 10)
+subject12 <- data_count %>% filter(subject == 12)
+subject29 <- data_count %>% filter(subject == 29)
+
+estimated_vals <- function(subject_data, model) {
+  subject_predict <- predict(model, newdata = subject_data)
+  subject_convert <- expm1(subject_predict)
+  
+  plot <- ggplot(subject_data)+
+    geom_bar(aes(x=pas, y=estimated_count, fill = task), stat = "identity", position = "dodge")+
+    scale_fill_manual(values=c("#4db8ff", "#82E0AA", "#FF6666")) +
+    theme_bw()
+  
+  return plot
+}
+
+subject7_predicted <- predict(model1, newdata = subject7)
+subject7$estimated_count <- expm1(subject7_predicted)
+
+estimated_vals
+
+
+```
+
 
 #### 3) Finally, fit a multilevel model that models _correct_ as dependent on _task_ with a unique intercept for each _subject_  
     i. does _task_ explain performance?  
