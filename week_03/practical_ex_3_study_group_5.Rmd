@@ -48,15 +48,14 @@ data$correct <- ifelse(data$obj.resp == "e" & data$target.type == "even"|data$ob
 ##### ii. describe what the following variables in the data frame contain, _trial.type_, _pas_, _trial_, _target.contrast_, _cue_, _task_, _target_type_, _rt.subj_, _rt.obj_, _obj.resp_, _subject_ and _correct_. (That means you can ignore the rest of the variables in your description). For each of them, indicate and argue for what `class` they should be classified into, e.g. _factor_, _numeric_ etc.  
 
 The following variables in the dataset are:
-
-
+$~$
 __trial.type__:
 Whether the trial was a part of the staircase procedure (i.e., before beginning the experiment, coded as "staircase") or whether it was a part of the experiment (coded as "experiment"). ¨
 
 
 *Class*: This variable is currently coded as a character, but should be coded as a factor if used in modeling. However, we might only be interested in the experimental phase and thus should consider filtering out the *staircase*. 
 
-
+$~$
 
 __pas__:
 Subjective rating of how clearly the target was seen by the participant. Measured using the Perceptual Awareness Scale. According to the article (Andersen et. al) the PAS has 4 categorically different ratings: 
