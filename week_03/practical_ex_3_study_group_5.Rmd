@@ -173,7 +173,6 @@ staircase$fitted_values <- fitted
 
 ggplot(staircase, (aes(x = target.contrast, y = as.numeric(as.character(correct)))))+ 
   geom_point()+
-  #geom_point(aes(target.contrast, fitted_values))+
   geom_line(aes(target.contrast, fitted_values), color = "blue") +
   facet_wrap(.~subject)+ 
   labs(title = "Complete Pooling", y = "Correct") +
