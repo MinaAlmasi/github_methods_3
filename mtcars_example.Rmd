@@ -1,0 +1,45 @@
+---
+title: "mtcars"
+author: "Mina Almasi"
+date: "10/5/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+data(mtcars)
+
+mtcars$gear <- factor(mtcars$gear)
+
+model <- lm(mpg ~ wt * gear, data = mtcars)
+summary(model)
+
+mtcars$int <- interaction(mtcars$gear, mtcars$wt)
+```
+
+wt:gear4 & wt:gear5 is how you should adjust the slope. 
+
+__Estimate for gear 4__:
+For the intercept of gear4 take the intercept & add the estimate of having four gears (gear4 = 14.098). 
+For the slope of gear4, take the slope of wt and add the *wt:gear4*
+
+quit
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
