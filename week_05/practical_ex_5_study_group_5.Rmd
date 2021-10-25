@@ -16,7 +16,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-pacman::p_load(lme4, tidyverse, readbulk, boot)
+pacman::p_load(lme4, tidyverse, readbulk, boot, multcomp)
 ```
 
 # Exercises and objectives
@@ -41,6 +41,9 @@ The data is associated with Experiment 1 of the article at the following DOI htt
 ```{r 4.1 loading}
 #loading data 
 data <- read_bulk(directory = "/Users/minaalmasi/Documents/Cognitive_Science/Methods_3/methods3_code/github_methods_3/week_05/experiment_1")
+
+# daniblu wd
+#data <- read_bulk(directory = "C:/Users/mrdan/Documents/B.Sc. Cognitive Science/3. semester/Methods 3 - Multilevel Statistical Modeling and Machine Learning/Class/github_methods_3/week_05/experiment_1")
 ```
 
 Investigating the seed variable: 
@@ -99,7 +102,11 @@ $~$
 
 Target contrast, which is the contrast between the target and the background, is held constant across participants in this experiment, where each participant had their own target contrast in experiment 2.
 
-Target frames, which is the amount of frames in which the target is shown (11.8 ms pr frame), was held constant at 3 frames in experiment 2, where it varies from 1 to 6 in this experiment. 
+Target frames, which is the amount of frames in which the target is shown (11.8 ms pr frame), was held constant at 3 frames in experiment 2, where it varies from 1 to 6 in this experiment. For this reason, *target.frames* should be a factor? ***ATTENCIONE***.
+```{r}
+#data$target.frames <- as.factor(data$target.frames)
+```
+
 
 $~$
 
@@ -153,7 +160,7 @@ log_likelihood_function(cp, data$correct)
 logLik(cp)
 ```
 
-Our log_likelihood_function gives the same result as the logLik function (yay!)
+Our log_likelihood_function gives the same result as the logLik function (-10723 ***ATTENCIONE***)
 To obtain the exact y-values in the exact same order is extremely unlikely given the model, simply because we have very many data points. 
 
 The likelihood is so close to zero, that our computer (with limited precision) displays '0' as output of the likelihood_function. This is why we calculate the log-likelihood as it results in a larger number that does not require as much computer precision to display.
@@ -167,7 +174,7 @@ log_likelihood_function(pp, data$correct)
 logLik(pp)
 ```
 
-Our log_likelihood_function does not exactly match the logLik function when applied to a partial pooling model. This is expected considering that the likelihood is calculated differently for multilevel models which is not taken into account in the formula used in our function. 
+Our log_likelihood_function (-10419.41 ***ATTENCIONE***) does not exactly match the logLik function (-10476.26***ATTENCIONE***) when applied to a partial pooling model. This is expected considering that the likelihood is calculated differently for multilevel models which is not taken into account in the formula used in our function. 
 
 $~$  
 
@@ -328,25 +335,34 @@ m7 <- glmer(correct ~ pas * target.frames + (1 + target.frames|subject), family 
 summary(m7)
 ```
 
+We see that accuracy increases more steeply with objective evidence (*target.frames*) for *pas2* compared to *pas1* since the interaction estimate *pas2:target.frames* is positive (0.45) and significant. The estimates for *pas2*, *pas3* and *pas4* as shown in the output are not directly interpretable since these are accuracy for *target.frames* = 0. However, the lowest possible amount of target frames is 1.
+
 
 2) `summary` won't allow you to test whether accuracy increases faster with objective evidence for PAS 3 than for PAS 2 (unless you use `relevel`, which you are not allowed to in this exercise). Instead, we'll be using the function `glht` from the `multcomp` package
     i. To redo the test in 6.1.i, you can create a _contrast_ vector. This vector will have the length of the number of estimated group-level effects and any specific contrast you can think of can be specified using this. For redoing the test from 6.1.i, the code snippet below will do
-    ii. Now test the hypothesis that accuracy increases faster with objective evidence for PAS 3 than for PAS 2.
-    iii. Also test the hypothesis that accuracy increases faster with objective evidence for PAS 4 than for PAS 3
-3) Finally, test that whether the difference between PAS 2 and 1 (tested in 6.1.i) is greater than the difference between PAS 4 and 3 (tested in 6.2.iii)
 
-### Snippet for 6.2.i
-```{r, eval=FALSE}
+```{r}
 ## testing whether PAS 2 is different from PAS 1
 contrast.vector <- matrix(c(0, 0, 0, 0, 0, 1, 0, 0), nrow=1)
-gh <- glht(pas.intact.tf.ranslopeint.with.corr, contrast.vector)
+gh <- glht(m7, contrast.vector)
 print(summary(gh))
 ## as another example, we could also test whether there is a difference in
 ## intercepts between PAS 2 and PAS 3
 contrast.vector <- matrix(c(0, -1, 1, 0, 0, 0, 0, 0), nrow=1)
-gh <- glht(pas.intact.tf.ranslopeint.with.corr, contrast.vector)
+gh <- glht(m7, contrast.vector)
 print(summary(gh))
 ```
+
+    ii. Now test the hypothesis that accuracy increases faster with objective evidence for PAS 3 than for PAS 2.
+```{r}
+contrast.vector <- matrix(c(0, 0, 0, 0, 0, -1, 1, 0), nrow=1)
+gh <- glht(m7, contrast.vector)
+print(summary(gh))
+```
+
+
+    iii. Also test the hypothesis that accuracy increases faster with objective evidence for PAS 4 than for PAS 3
+3) Finally, test that whether the difference between PAS 2 and 1 (tested in 6.1.i) is greater than the difference between PAS 4 and 3 (tested in 6.2.iii)
 
 # EXERCISE 7 - Estimate psychometric functions for the Perceptual Awareness Scale and evaluate them  
 
@@ -385,7 +401,5 @@ RSS <- function(dataset, par)
     iv. Comment on the differences between the fits - mention some advantages and disadvantages of each way  
 2) Finally, estimate the parameters for all subjects and each of their four PAS ratings. Then plot the estimated function at the group-level by taking the mean for each of the four parameters, _a_, _b_, _c_ and _d_ across subjects. A function should be estimated for each PAS-rating (it should look somewhat similar to Fig. 3 from the article:  https://doi.org/10.1016/j.concog.2019.03.007)
     i. compare with the figure you made in 5.3.ii and comment on the differences between the fits - mention some advantages and disadvantages of both.
-    
-    
     
     
