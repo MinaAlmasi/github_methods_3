@@ -40,18 +40,18 @@ The data is associated with Experiment 1 of the article at the following DOI htt
 
 ```{r 4.1 loading}
 #loading data 
-#data <- read_bulk(directory = "/Users/minaalmasi/Documents/Cognitive_Science/Methods_3/methods3_code/github_methods_3/week_05/experiment_1")
+data <- read_bulk(directory = "/Users/minaalmasi/Documents/Cognitive_Science/Methods_3/methods3_code/github_methods_3/week_05/experiment_1")
 
 # daniblu wd
 #data <- read_bulk(directory = "C:/Users/mrdan/Documents/B.Sc. Cognitive Science/3. semester/Methods 3 - Multilevel Statistical Modeling and Machine Learning/Class/github_methods_3/week_05/experiment_1")
 
 #matilde wd
-data <- read_bulk(directory = "C:/Users/Matilde Just Sterup/Desktop/Cogsci/Methods 3/github_methods_3/week_05/data")
+#data <- read_bulk(directory = "C:/Users/Matilde Just Sterup/Desktop/Cogsci/Methods 3/github_methods_3/week_05/data")
 ```
 
 Investigating the seed variable: 
 ```{r 4.1 NAs}
-is_empty(data$seed) #checking whether the seed column is empty or NULL 
+is_empty(data$seed) #checking whether the seed column is empty or NULL (returns TRUE if empty, FALSE if not)
 
 unique(data$seed) #looking at the unique values in the seed column
 ```
@@ -96,18 +96,24 @@ $~$
 ```{r 4.1iii}
 data$correct <- ifelse(data$obj.resp == "e" & data$target.type == "even"|data$obj.resp == "o" & data$target.type == "odd", 1, 0)
 
-data$correct <- as.factor(data$correct) #factorising correct 
+data$correct <- as.factor(data$correct) 
 ```
+
+The _correct_ variable was also converted to a factor as it is binary data coded as 0 for incorrect and 1 for a correct answer. 
 
 $~$
 
 ##### iv. Describe how the _target.contrast_ and _target.frames_ variables differ compared to the data from part 1 of this assignment  
 
-Target contrast, which is the contrast between the target and the background, is held constant across participants in this experiment, where each participant had their own target contrast in experiment 2.
+In this assignment (*Assignment 2; Part 2*), we are working with __experiment 1__ whereas we worked with experiment 2 in *Assignment 2; Part 1*. A few differences should be noted when working with the following variables: 
 
-Target frames, which is the amount of frames in which the target is shown (11.8 ms pr frame), was held constant at 3 frames in experiment 2, where it varies from 1 to 6 in this experiment. For this reason, *target.frames* should be a factor? ***ATTENCIONE***.
+_target.contrast_ is the contrast between the target and the background. In experiment 1, it is held constant across participants whereas each participant had their own _target.contrast_ in experiment 2.
+
+_target.frames_ is the amount of frames in which the target is shown (11.8 ms pr frame). In experiment 2, it was held constant at 3 frames. On the other hand, the amount of frames varies from 1 to 6 in the current dataset from experiment 1. _target.frames_ can be considered a type of time variable as it describes the duration the target was shown. It is thus a ratio variable as the ratio of two measurements has a meaningful interpretation. That is, 4 _target.frames_ (47.2 ms) is twice as long as 2 _target.frames_ (23.6 ms). For this reason, its class is coded as an integer: 
+
+**ATTENCIONE CHECK TEXT ABOVE BEFORE FINAL KNIT** 
 ```{r}
-#data$target.frames <- as.factor(data$target.frames)
+class(data$target.frames)
 ```
 
 
@@ -341,11 +347,11 @@ summary(m7)
 We see that accuracy increases more steeply with objective evidence (*target.frames*) for *pas2* compared to *pas1* since the interaction estimate *pas2:target.frames* is positive (0.45) and significant. The estimates for *pas2*, *pas3* and *pas4* as shown in the output are not directly interpretable since these are accuracy for *target.frames* = 0. However, the lowest possible amount of target frames is 1.
 
 
-2) `summary` won't allow you to test whether accuracy increases faster with objective evidence for PAS 3 than for PAS 2 (unless you use `relevel`, which you are not allowed to in this exercise). Instead, we'll be using the function `glht` from the `multcomp` package
+#### 2) `summary` won't allow you to test whether accuracy increases faster with objective evidence for PAS 3 than for PAS 2 (unless you use `relevel`, which you are not allowed to in this exercise). Instead, we'll be using the function `glht` from the `multcomp` package
 
-i. To redo the test in 6.1.i, you can create a _contrast_ vector. This vector will have the length of the number of estimated group-level effects and any specific contrast you can think of can be specified using this. For redoing the test from 6.1.i, the code snippet below will do
+##### i. To redo the test in 6.1.i, you can create a _contrast_ vector. This vector will have the length of the number of estimated group-level effects and any specific contrast you can think of can be specified using this. For redoing the test from 6.1.i, the code snippet below will do
 
-```{r}
+```{r 6.2i}
 ## testing whether PAS 2 is different from PAS 1
 contrast.vector <- matrix(c(0, 0, 0, 0, 0, 1, 0, 0), nrow=1)
 gh <- glht(m7, contrast.vector)
@@ -353,17 +359,16 @@ print(summary(gh))
 
 ```
 
-ii. Now test the hypothesis that accuracy increases faster with objective evidence for PAS 3 than for PAS 2.
-```{r}
+##### ii. Now test the hypothesis that accuracy increases faster with objective evidence for PAS 3 than for PAS 2.
+```{r 6.2ii}
 contrast.vector <- matrix(c(0, 0, 0, 0, 0, -1, 1, 0), nrow=1)
 gh <- glht(m7, contrast.vector)
 print(summary(gh))
 ```
 Accuracy increases significantly faster with objective evidence for PAS 3 than for PAS 2  ($\beta=0.30151, z= 6.524, p<.01$)
 
-iii. Also test the hypothesis that accuracy increases faster with objective evidence for PAS 4 than for PAS 3
-
-```{r}
+##### iii. Also test the hypothesis that accuracy increases faster with objective evidence for PAS 4 than for PAS 3
+```{r 6.2iii}
 contrast.vector <- matrix(c(0, 0, 0, 0, 0, 0, -1, 1), nrow=1)
 gh <- glht(m7, contrast.vector)
 print(summary(gh))
@@ -400,7 +405,7 @@ It has four parameters: _a_, which can be interpreted as the minimum accuracy le
   
 We can define a function of a residual sum of squares as below
 
-```{r}
+```{r 7 function for RSS}
 RSS <- function(dataset, par)
 {
     ## "dataset" should be a data.frame containing the variables x (target.frames)
@@ -417,13 +422,10 @@ RSS <- function(dataset, par)
 ```
 
 1) Now, we will fit the sigmoid for the four PAS ratings for Subject 7
-
-
-```{r}
-#subject 7
+```{r 7.1}
 subject7 <- data %>% 
-  filter(subject == 7) 
-
+  filter(subject == 7) %>% 
+  dplyr::select(target.frames, correct, pas)
 ```
 
 i. use the function `optim`. It returns a list that among other things contains the four estimated parameters. You should set the following arguments:  
@@ -435,50 +437,104 @@ i. use the function `optim`. It returns a list that among other things contains 
     `upper`: upper bounds for the four parameters, (the highest value they can take) can set _c_ and _d_ as `Inf`. Find good choices for _a_ and _b_ yourself (and argue why they are appropriate) 
     
 
-In the 'par' argument we set a = 0.5 because we believe the minimum accuracy level cannot be lower than chance and b = 1 because it is impossible to have an accuracy score above 100 %. 
+In the 'par' argument, we set a = 0.5 because we believe the minimum accuracy level cannot be lower than chance and b = 1 because it is impossible to have an accuracy score above 100 %. 
 
-In the 'lower' argument we set a = 0 because the lowest possible accuracy is 0 and b = 0.5 because the best accuracy should not be below chance.
+In the 'lower' argument, we set a = 0 because the lowest possible accuracy is 0 and b = 0.5 because the best accuracy should not be below chance. (**ATTENCTIONE Lau vil gerne sørge for at den ikke er lavere end 50 %, så det er lol at vi sætter a = 0, så jeg har sat den til 0.5 - det kan vi snakke om i morgen**)
 
-In the 'upper' argument we set a = 1 because it would be possible, although unlikely, for even the worst accuracy to be 100 % and b = 1 because the maximum accuracy is 100 %.
+In the 'upper' argument, we set a = 1 because it would be possible, although unlikely, for even the worst accuracy to be 100 % and b = 1 because the maximum accuracy is 100 %.
 
-```{r}
-optim(par = c(0.5,1,1,1), fn=RSS, data = subject7, method = 'L-BFGS-B', lower = c(0,0.5,-Inf,-Inf), upper = c(1,1,Inf,Inf))
+```{r 7.1i}
+par1 <- optim(par = c(0.5,1,1,1), fn=RSS, data = filter(subject7, pas == "1"), method = 'L-BFGS-B', lower = c(0.5,0.5,-Inf,-Inf), upper = c(1,1,Inf,Inf))
+
+par2 <- optim(par = c(0.5,1,1,1), fn=RSS, data = filter(subject7, pas == "2"), method = 'L-BFGS-B', lower = c(0.5,0.5,-Inf,-Inf), upper = c(1,1,Inf,Inf))
+
+par3 <- optim(par = c(0.5,1,1,1), fn=RSS, data = filter(subject7, pas == "3"), method = 'L-BFGS-B', lower = c(0.5,0.5,-Inf,-Inf), upper = c(1,1,Inf,Inf))
+
+par4 <- optim(par = c(0.5,1,1,1), fn=RSS, data = filter(subject7, pas == "4"), method = 'L-BFGS-B', lower = c(0.5,0.5,-Inf,-Inf), upper = c(1,1,Inf,Inf))
 ```
-From the 'optim function' we find:
-a = 0.383
-b = 0.981
-c = 2.226
-d = 0.627
 
-  
-ii. Plot the fits for the PAS ratings on a single plot (for subject 7) `xlim=c(0, 8)`
+##### ii. Plot the fits for the PAS ratings on a single plot (for subject 7) `xlim=c(0, 8)`
 
-```{r}
-# we add the fits using the formula a + ((b - a)/(1+exp((c - x)/d))) to the subject 7 dataframe with the values we find from the optim function.
-subject7 <- subject7 %>% 
-  mutate("yhat" = 0.383 + ((0.981 - 0.383)/(1+exp((2.226 - subject7$target.frames)/0.627))))
+Firstly, we need to calculate the estimated y-values for subject one using the estimates we have been given by the optim function
+```{r 7ii yhats}
+#calculating the yhats using the formula a + ((b - a)/(1+exp((c - x)/d)))
+newdata <- data.frame(cbind("x" = seq(0, 8, by = 0.01)))
 
+newdata$yhat1 <- par1$par[1] + ((par1$par[2]-par1$par[1])/(1+exp((par1$par[3]-newdata$x)/par1$par[4])))
+newdata$yhat2 <- par2$par[1] + ((par2$par[2]-par2$par[1])/(1+exp((par2$par[3]-newdata$x)/par2$par[4])))
+newdata$yhat3 <- par3$par[1] + ((par3$par[2]-par3$par[1])/(1+exp((par3$par[3]-newdata$x)/par3$par[4])))
+newdata$yhat4 <- par4$par[1] + ((par4$par[2]-par4$par[1])/(1+exp((par4$par[3]-newdata$x)/par4$par[4])))
+```
 
-ggplot(subject7, aes(x = target.frames, y = yhat, color = pas))+
-  geom_smooth(method = "glm", se = FALSE, method.args = list(family = "binomial"), size = 0.7) +
-  xlim(min = 0, max = 8)+
-  labs(y = "correct") + 
+Now we are ready to plot the values:
+```{r 7ii plotting}
+ggplot(newdata) + 
+  geom_line(aes(x=x, y=yhat1), color = "red")+
+  geom_line(aes(x=x, y=yhat2), color = "green")+
+  geom_line(aes(x=x, y=yhat3), color = "blue")+
+  geom_line(aes(x=x, y=yhat4), color = "purple")+
+  xlim(c(0,8))+
+  ylim(c(0,1))+
+  ylab("Predicted Correct")+
+  xlab("Target Frames")+
   theme_bw()
 ```
 
 
-iii. Create a similar plot for the PAS ratings on a single plot (for subject 7), but this time based on the model from 6.1 `xlim=c(0, 8)`   
+##### iii. Create a similar plot for the PAS ratings on a single plot (for subject 7), but this time based on the model from 6.1 `xlim=c(0, 8)`   
 
+Firstly, we need to create the data and calculate the predicted values
 ```{r}
-ggplot(subject7, aes(x = target.frames, y = as.numeric(as.character(correct)), color = pas))+
-  geom_smooth(method = "glm", se = FALSE, method.args = list(family = "binomial"), size = 0.7) +
-  xlim(min = 0, max = 8)+
-  labs(y = "correct") + 
+data$fitted <- fitted(m7) #calculating all fitted values
+
+subject7_new <- data %>% 
+  filter(subject == 7) %>% #filtering so we only get the fitted values for subject 7 
+  dplyr::select(pas, fitted, target.frames)
+```
+
+To begin with, we create the dataset for pas 1.. We define the x-values using the seq function (to create an xlim of 0 to 8). We have to specify the sequencing with the by argument which is calculated as such: $$((\text{to}-\text{from})/(\text{length.out}-1))$$
+```{r}
+pas1 <- subject7_new %>%
+  filter(pas == "1") %>% 
+  dplyr::select(fitted) %>% 
+  rename("yhat1" = fitted) %>% 
+  mutate("x" = cbind("x" = seq(0, 8, by = 0.04395)))
+```
+
+We do the same for the rest:
+```{r}
+pas2 <- subject7_new %>%
+  filter(pas == "2") %>% 
+  rename("yhat2" = fitted) %>% 
+  mutate("x" = cbind("x" = seq(0, 8, by = 0.0620155)))
+
+pas3 <- subject7_new %>%
+  filter(pas == "3") %>% 
+  rename("yhat3" = fitted) %>% 
+  mutate("x" = cbind("x" = seq(0, 8, by = 0.1038961)))
+
+pas4 <- subject7_new %>%
+  filter(pas == "4") %>% 
+  rename("yhat4" = fitted) %>% 
+  mutate("x" = cbind("x" = seq(0, 8, by = 0.01694915)))
+```
+
+Now we can plot it: 
+```{r}
+ggplot() + 
+  geom_line(data = pas1, aes(x=x, y=yhat1), color = "red")+
+  geom_line(data = pas2, aes(x=x, y=yhat2), color = "green")+
+  geom_line(data = pas3, aes(x=x, y=yhat3), color = "blue")+
+  geom_line(data = pas4, aes(x=x, y=yhat4), color = "purple")+
+  xlim(c(0,8))+
+  ylim(c(0,1))+
+  ylab("Predicted Correct")+
+  xlab("Target Frames")+
   theme_bw()
 ```
 
 
-iv. Comment on the differences between the fits - mention some advantages and disadvantages of each way  
+##### iv. Comment on the differences between the fits - mention some advantages and disadvantages of each way  
 
 
 COMMENTS:
