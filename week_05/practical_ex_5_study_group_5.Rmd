@@ -469,86 +469,59 @@ newdata$yhat4 <- par4$par[1] + ((par4$par[2]-par4$par[1])/(1+exp((par4$par[3]-ne
 Now we are ready to plot the values:
 ```{r 7ii plotting}
 ggplot(newdata) + 
-  geom_line(aes(x=x, y=yhat1), color = "red")+
-  geom_line(aes(x=x, y=yhat2), color = "green")+
-  geom_line(aes(x=x, y=yhat3), color = "blue")+
-  geom_line(aes(x=x, y=yhat4), color = "purple")+
+  geom_line(aes(x=x, y=yhat1, color = "pas1"))+
+  geom_line(aes(x=x, y=yhat2, color = "pas2"))+
+  geom_line(aes(x=x, y=yhat3, color = "pas3"))+
+  geom_line(aes(x=x, y=yhat4, color = "pas4"))+
+  scale_color_manual(values = c("pas1" = "#F8766D", "pas2" = "#7CAE00", "pas3" = "#00BFC4", "pas4" = "#C77CFF"))+
   xlim(c(0,8))+
   ylim(c(0,1))+
-  ylab("Predicted Correct")+
-  xlab("Target Frames")+
-  theme_bw()
+  labs(y = "Predicted Correct", x = "Target Frames", title = "Plotting the Sigmoid Fits (Optim)")+
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 15))
 ```
 
 
 ##### iii. Create a similar plot for the PAS ratings on a single plot (for subject 7), but this time based on the model from 6.1 `xlim=c(0, 8)`   
 
-Firstly, we need to create the data and calculate the predicted values
+Firstly, we need to create the data and calculate the predicted values. We define the x-values using the seq function (to create an xlim of 0 to 8). We have to specify the sequencing with the by argument which is calculated as such: $$((\text{to}-\text{from})/(\text{length.out}-1))$$
 ```{r}
-data$fitted <- fitted(m7) #calculating all fitted values
-
-subject7_new <- data %>% 
-  filter(subject == 7) %>% #filtering so we only get the fitted values for subject 7 
-  dplyr::select(pas, fitted, target.frames)
+newdata2 <- data.frame(cbind('target.frames' = seq(0, 8, by = 0.001), "pas" = rep(1:4), subject = rep("7")))
 ```
 
-To begin with, we create the dataset for pas 1.. We define the x-values using the seq function (to create an xlim of 0 to 8). We have to specify the sequencing with the by argument which is calculated as such: $$((\text{to}-\text{from})/(\text{length.out}-1))$$
+We fix some classes and use the predict() function to estimate our y-values: 
 ```{r}
-pas1 <- subject7_new %>%
-  filter(pas == "1") %>% 
-  dplyr::select(fitted) %>% 
-  rename("yhat1" = fitted) %>% 
-  mutate("x" = cbind("x" = seq(0, 8, by = 0.04395)))
-```
+newdata2$subject <- as.factor(newdata2$subject)
+newdata2$pas <- as.factor(newdata2$pas)
+newdata2$target.frames <- as.numeric(newdata2$target.frames)
 
-We do the same for the rest:
-```{r}
-pas2 <- subject7_new %>%
-  filter(pas == "2") %>% 
-  rename("yhat2" = fitted) %>% 
-  mutate("x" = cbind("x" = seq(0, 8, by = 0.0620155)))
-
-pas3 <- subject7_new %>%
-  filter(pas == "3") %>% 
-  rename("yhat3" = fitted) %>% 
-  mutate("x" = cbind("x" = seq(0, 8, by = 0.1038961)))
-
-pas4 <- subject7_new %>%
-  filter(pas == "4") %>% 
-  rename("yhat4" = fitted) %>% 
-  mutate("x" = cbind("x" = seq(0, 8, by = 0.01694915)))
+newdata2$yhat <- predict(m7, newdata = newdata2, type = "response") # type response defined to predict responses back to 0 target frames albeit no real data is present. 
 ```
 
 Now we can plot it: 
 ```{r}
-ggplot() + 
-  geom_line(data = pas1, aes(x=x, y=yhat1), color = "red")+
-  geom_line(data = pas2, aes(x=x, y=yhat2), color = "green")+
-  geom_line(data = pas3, aes(x=x, y=yhat3), color = "blue")+
-  geom_line(data = pas4, aes(x=x, y=yhat4), color = "purple")+
+ggplot(newdata2) + 
+  geom_line(aes(x=target.frames, y=yhat, color = pas))+
   xlim(c(0,8))+
   ylim(c(0,1))+
-  ylab("Predicted Correct")+
-  xlab("Target Frames")+
-  theme_bw()
+  labs(y = "Predicted Correct", x = "Target Frames", title = "Model from 6.1")+
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 15))
 ```
 
 
 ##### iv. Comment on the differences between the fits - mention some advantages and disadvantages of each way  
 
+**WRITE HERE!!!**
 
-COMMENTS:
-
-
-2) Finally, estimate the parameters for all subjects and each of their four PAS ratings. Then plot the estimated function at the group-level by taking the mean for each of the four parameters, _a_, _b_, _c_ and _d_ across subjects. A function should be estimated for each PAS-rating (it should look somewhat similar to Fig. 3 from the article:  https://doi.org/10.1016/j.concog.2019.03.007)
+##### 2) Finally, estimate the parameters for all subjects and each of their four PAS ratings. Then plot the estimated function at the group-level by taking the mean for each of the four parameters, _a_, _b_, _c_ and _d_ across subjects. A function should be estimated for each PAS-rating (it should look somewhat similar to Fig. 3 from the article:  https://doi.org/10.1016/j.concog.2019.03.007)
 
 ```{r}
 
 ```
 
 
-
-i. compare with the figure you made in 5.3.ii and comment on the differences between the fits - mention some advantages and disadvantages of both.
+##### i. compare with the figure you made in 5.3.ii and comment on the differences between the fits - mention some advantages and disadvantages of both.
 
 ```{r}
 
