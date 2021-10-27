@@ -16,7 +16,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-pacman::p_load(lme4, tidyverse, readbulk, boot, multcomp)
+pacman::p_load(lme4, tidyverse, readbulk, boot, multcomp, ggpubr)
 ```
 
 # Exercises and objectives
@@ -444,49 +444,52 @@ In the 'lower' argument, we set a = 0 because the lowest possible accuracy is 0 
 In the 'upper' argument, we set a = 1 because it would be possible, although unlikely, for even the worst accuracy to be 100 % and b = 1 because the maximum accuracy is 100 %.
 
 ```{r 7.1i}
-par1 <- optim(par = c(0.5,1,1,1), fn=RSS, data = filter(subject7, pas == "1"), method = 'L-BFGS-B', lower = c(0.5,0.5,-Inf,-Inf), upper = c(1,1,Inf,Inf))
+pas1 <- optim(par = c(0.5,1,1,1), fn=RSS, data = filter(subject7, pas == "1"), method = 'L-BFGS-B', lower = c(0.5,0.5,-Inf,-Inf), upper = c(1,1,Inf,Inf))
 
-par2 <- optim(par = c(0.5,1,1,1), fn=RSS, data = filter(subject7, pas == "2"), method = 'L-BFGS-B', lower = c(0.5,0.5,-Inf,-Inf), upper = c(1,1,Inf,Inf))
+pas2 <- optim(par = c(0.5,1,1,1), fn=RSS, data = filter(subject7, pas == "2"), method = 'L-BFGS-B', lower = c(0.5,0.5,-Inf,-Inf), upper = c(1,1,Inf,Inf))
 
-par3 <- optim(par = c(0.5,1,1,1), fn=RSS, data = filter(subject7, pas == "3"), method = 'L-BFGS-B', lower = c(0.5,0.5,-Inf,-Inf), upper = c(1,1,Inf,Inf))
+pas3 <- optim(par = c(0.5,1,1,1), fn=RSS, data = filter(subject7, pas == "3"), method = 'L-BFGS-B', lower = c(0.5,0.5,-Inf,-Inf), upper = c(1,1,Inf,Inf))
 
-par4 <- optim(par = c(0.5,1,1,1), fn=RSS, data = filter(subject7, pas == "4"), method = 'L-BFGS-B', lower = c(0.5,0.5,-Inf,-Inf), upper = c(1,1,Inf,Inf))
+pas4 <- optim(par = c(0.5,1,1,1), fn=RSS, data = filter(subject7, pas == "4"), method = 'L-BFGS-B', lower = c(0.5,0.5,-Inf,-Inf), upper = c(1,1,Inf,Inf))
 ```
 
 ##### ii. Plot the fits for the PAS ratings on a single plot (for subject 7) `xlim=c(0, 8)`
 
-Firstly, we need to calculate the estimated y-values for subject one using the estimates we have been given by the optim function
+Firstly, we need to calculate the predicted values for subject 7 using the estimates we have been given by the optim functions. To create an xlim of 0 to 8, we fabricate x-values using the seq function. We have to specify the sequencing with the by argument which is defined as such: $$((\text{to}-\text{from})/(\text{length.out}-1))$$
+
 ```{r 7ii yhats}
 #calculating the yhats using the formula a + ((b - a)/(1+exp((c - x)/d)))
-newdata <- data.frame(cbind("x" = seq(0, 8, by = 0.01)))
+newdata <- data.frame(cbind("x" = seq(0, 8, by = 0.01))) 
 
-newdata$yhat1 <- par1$par[1] + ((par1$par[2]-par1$par[1])/(1+exp((par1$par[3]-newdata$x)/par1$par[4])))
-newdata$yhat2 <- par2$par[1] + ((par2$par[2]-par2$par[1])/(1+exp((par2$par[3]-newdata$x)/par2$par[4])))
-newdata$yhat3 <- par3$par[1] + ((par3$par[2]-par3$par[1])/(1+exp((par3$par[3]-newdata$x)/par3$par[4])))
-newdata$yhat4 <- par4$par[1] + ((par4$par[2]-par4$par[1])/(1+exp((par4$par[3]-newdata$x)/par4$par[4])))
+newdata$yhat1 <- pas1$par[1] + ((pas1$par[2]-pas1$par[1])/(1+exp((pas1$par[3]-newdata$x)/pas1$par[4])))
+newdata$yhat2 <- pas2$par[1] + ((pas2$par[2]-pas2$par[1])/(1+exp((pas2$par[3]-newdata$x)/pas2$par[4])))
+newdata$yhat3 <- pas3$par[1] + ((pas3$par[2]-pas3$par[1])/(1+exp((pas3$par[3]-newdata$x)/pas3$par[4])))
+newdata$yhat4 <- pas4$par[1] + ((pas4$par[2]-pas4$par[1])/(1+exp((pas4$par[3]-newdata$x)/pas4$par[4])))
+
 ```
 
 Now we are ready to plot the values:
 ```{r 7ii plotting}
-ggplot(newdata) + 
-  geom_line(aes(x=x, y=yhat1, color = "pas1"))+
-  geom_line(aes(x=x, y=yhat2, color = "pas2"))+
-  geom_line(aes(x=x, y=yhat3, color = "pas3"))+
-  geom_line(aes(x=x, y=yhat4, color = "pas4"))+
-  scale_color_manual(values = c("pas1" = "#F8766D", "pas2" = "#7CAE00", "pas3" = "#00BFC4", "pas4" = "#C77CFF"))+
+optim_plot <- ggplot(newdata) + 
+  geom_line(aes(x=x, y=yhat1, color = "1"))+
+  geom_line(aes(x=x, y=yhat2, color = "2"))+
+  geom_line(aes(x=x, y=yhat3, color = "3"))+
+  geom_line(aes(x=x, y=yhat4, color = "4"))+
+  scale_color_manual(name = "pas", values = c("1" = "#F8766D", "2" = "#7CAE00", "3" = "#00BFC4", "4" = "#C77CFF"))+
   xlim(c(0,8))+
   ylim(c(0,1))+
-  labs(y = "Predicted Correct", x = "Target Frames", title = "Plotting the Sigmoid Fits (Optim)")+
+  labs(y = "Predicted Correct", x = "Target Frames", title = "Optim Functions")+
   theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 15))
+  theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+optim_plot
 ```
 
 
 ##### iii. Create a similar plot for the PAS ratings on a single plot (for subject 7), but this time based on the model from 6.1 `xlim=c(0, 8)`   
 
-Firstly, we need to create the data and calculate the predicted values. We define the x-values using the seq function (to create an xlim of 0 to 8). We have to specify the sequencing with the by argument which is calculated as such: $$((\text{to}-\text{from})/(\text{length.out}-1))$$
 ```{r}
-newdata2 <- data.frame(cbind('target.frames' = seq(0, 8, by = 0.001), "pas" = rep(1:4), subject = rep("7")))
+newdata2 <- data.frame(cbind('target.frames' = rep(seq(0, 8, by = 0.01), 4), "pas" = c(rep(1,801),rep(2,801), rep(3, 801), rep(4, 801)), subject = rep("7")))
 ```
 
 We fix some classes and use the predict() function to estimate our y-values: 
@@ -495,24 +498,37 @@ newdata2$subject <- as.factor(newdata2$subject)
 newdata2$pas <- as.factor(newdata2$pas)
 newdata2$target.frames <- as.numeric(newdata2$target.frames)
 
-newdata2$yhat <- predict(m7, newdata = newdata2, type = "response") # type response defined to predict responses back to 0 target frames albeit no real data is present. 
+newdata2$yhat <- predict(m7, newdata = newdata2, type = "response") #response argument defined to keep it on the probablility scale to create sigmoid functions. 
 ```
 
 Now we can plot it: 
 ```{r}
-ggplot(newdata2) + 
+m7_plot <- ggplot(newdata2) + 
   geom_line(aes(x=target.frames, y=yhat, color = pas))+
   xlim(c(0,8))+
   ylim(c(0,1))+
-  labs(y = "Predicted Correct", x = "Target Frames", title = "Model from 6.1")+
+  labs(y = "Predicted Correct", x = "Target Frames", title = "Model 6.1 (m7)")+
   theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 15))
+  theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+m7_plot
 ```
 
 
 ##### iv. Comment on the differences between the fits - mention some advantages and disadvantages of each way  
 
-**WRITE HERE!!!**
+```{r}
+comparison <- ggarrange(optim_plot, m7_plot)
+comparison
+
+annotate_figure(comparison, top = text_grob("Subject 7: PAS Fits", color = "black", face = "bold", size = 14))
+```
+
+Firstly, the optim function has solved the issue of having accuracy below 50 % at *target.frames* = 0 as we have defined the accepted minimum accuracy to be a = 0.5. With the model from 6.1 (m7), this is not the case as all PAS functions except *pas4* goes below an accuracy of 0.5 at *target.frames* = 0. 
+
+Generally, the tendencies for the functions are similar on both plots. However, the optim function for *pas2* behaves quite differently. This may be due to the estimates being fitted only on data from subject 7 whereas the estimates from the model from 6.1 (m7) has been fitted on the entire dataset. Thus, while both functions have estimated y-values from subject7, model 6.1 has more information to base its estimates on. 
+
+$~$
 
 ##### 2) Finally, estimate the parameters for all subjects and each of their four PAS ratings. Then plot the estimated function at the group-level by taking the mean for each of the four parameters, _a_, _b_, _c_ and _d_ across subjects. A function should be estimated for each PAS-rating (it should look somewhat similar to Fig. 3 from the article:  https://doi.org/10.1016/j.concog.2019.03.007)
 
