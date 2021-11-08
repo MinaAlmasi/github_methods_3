@@ -1,5 +1,5 @@
 ---
-title: "practical_exercise_3, Methods 3, 2021, autumn semester"
+title: "Portfolio Assignment 2 part 1 (practical ex 3), Methods 3, 2021, autumn semester"
 author: 'Mina Almasi, Daniel Blumenkranz, Anton Drasbæk Schiønning, Matilde Sterup'
 date: "[29-09-2021]"
 output: html_document
@@ -16,6 +16,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 pacman::p_load(tidyverse, lme4, readbulk, boot)
 ```
+
+# Assignment 2; Part 1 – fitting the models: Mixed effects modelling of response times, response counts, and accuracy
 
 # Exercises and objectives
 The objectives of the exercises of this assignment are:  
@@ -60,7 +62,7 @@ Whether the trial was a part of the staircase procedure (i.e., before beginning 
 $~$
 
 __pas__:
-Subjective rating of how clearly the target was seen by the participant. Measured using the Perceptual Awareness Scale. According to the article (Andersen et. al) the PAS has 4 categorically different ratings:
+Subjective rating of how clearly the target was seen by the participant. Measured using the Perceptual Awareness Scale. According to the article (Andersen et. al., 2019) the PAS has 4 categorically different ratings:
   
 1. No Experience (NE)
 2. Weak Glimpse (WG)
@@ -177,7 +179,6 @@ ggplot(staircase, (aes(x = target.contrast, y = as.numeric(as.character(correct)
   facet_wrap(.~subject)+ 
   labs(title = "Complete Pooling", y = "Correct") +
   theme_bw()
-
 ```
 
 Secondly, we made a *no pooling* plot for each participant:
@@ -217,8 +218,8 @@ ggplot(staircase, (aes(x = target.contrast, y = as.numeric(as.character(correct)
 
 
 ##### v. in your own words, describe how the partial pooling model allows for a better fit for each subject
-  
-Compared to the *complete pooling* model, the *partial pooling* model adapts the fit to both the general tendencies in the data as well as the subjective differences. Hence the fit for each subject becomes better than the *complete pooling*, because we account for the fact that they have different baselines and slopes. However, the estimated functions still do not look rather logistic. 
+Compared to the *complete pooling* model, the *partial pooling* model adapts the fit to both the general tendencies in the data as well as the subjective differences. Hence the fit for each subject becomes better than the *complete pooling* in the sense that the lines are closer to the data-points. This is because we account for each subject having different baselines and slopes. As mentioned before, a *no pooling* model would be the best fit for each individual subject but would not be as generalisable. 
+
 
 ## Exercise 2
 
@@ -328,7 +329,6 @@ It seems, that response time only significantly increases when *task* (i.e., the
 #### 3) Now add _pas_ and its interaction with _task_ to the fixed effects
 ```{r 2.3}
 pas_interaction_model <- lmerTest::lmer(rt.obj ~ task + pas + task:pas + (1|subject) + (1|trial), REML=FALSE, data = experiment)
-summary(pas_interaction_model)
 ```
 
 ##### i. how many types of group intercepts (random effects) can you add without ending up with convergence issues or singular fits? 
@@ -337,10 +337,8 @@ summary(pas_interaction_model)
 amok1_model <- lmerTest::lmer(rt.obj ~ task + pas + task:pas + (1|subject) + (1|trial) + (1|rt.subj), REML=FALSE, data = experiment)
 
 amok2_model <- lmerTest::lmer(rt.obj ~ task + pas + task:pas + (1|subject) + (1|trial) + (1|rt.subj) + (1|even.digit), REML=FALSE, data = experiment)
-summary(amok2_model)
 
 amok3_model <- lmerTest::lmer(rt.obj ~ task + pas + task:pas + (1|subject) + (1|trial) + (1|rt.subj) + (1|even.digit) + (1|cue), REML=FALSE, data = experiment)
-summary(amok3_model)
 ```
 
 After adding the fifth random intercept, the model did not converge.
@@ -358,7 +356,6 @@ The variances of the random intercepts in the singular-model (amok3_model) are g
     
 ##### iii. in your own words - how could you explain why your model would result in a singular fit? 
   
-
 A too complex model entails singularity. A model is 'too complex' if the number of predictors (fixed and random effects included) is so large that extreme overfitting occurs. 
    
 ## Exercise 3
@@ -393,7 +390,7 @@ The slope of _pas_ is not modelled as a general slope but instead modelled on a 
   
 ##### iii. if you get a convergence error, try another algorithm (the default is the _Nelder_Mead_) - try (_bobyqa_) for which the `dfoptim` package is needed. In `glmer`, you can add the following for the `control` argument: `glmerControl(optimizer="bobyqa")` (if you are interested, also have a look at the function `allFit`)
   
-The bobyqa optimiser is used as the model failed to converge without it. 
+The bobyqa optimiser is used as the model (*model1*) failed to converge without it. 
 
 ##### iv. when you have a converging fit - fit a model with only the main effects of _pas_ and _task_. Compare this with the model that also includes the interaction  
 ```{r 3.2iv}
@@ -411,25 +408,20 @@ residuals_model2 <- residuals(model2)
 rvar_model1<- sum((residuals_model1)^2)
 rvar_model2<- sum((residuals_model2)^2)
 
-#residual standard deviation 
-sd_model1<- sqrt((sum(residuals_model1)^2/length(residuals_model1)-2))
-sd_model2<- sqrt((sum(residuals_model2)^2/length(residuals_model2)-2))
-
 #AICs
 AICs <- AIC(model1, model2) #model1 = with interaction, model2 = without interaction
 
 #Table 
-tibble("model"=c("with Interaction","Without Interaction"), "residual variance"=c(rvar_model1, rvar_model2), "residual sd"=c(sd_model1, sd_model2), "AIC"=c(AICs[1,2], AICs[2,2]))
+tibble("model"=c("with Interaction","Without Interaction"), "residual variance"=c(rvar_model1, rvar_model2), "AIC"=c(AICs[1,2], AICs[2,2]))
 ```
 
 ##### v. indicate which of the two models, you would choose and why
-  Both the residual variance, residual standard deviation, and AIC is lower in the model (*model 1*) including the interaction than the model without the interaction (*model 2*). Additionally, the model including the interaction can also be argued for theoretically. It is likely that there is a relationship between the subject's confidence ratings (*pas*) and the type of cue (*task*). For these reasons, we would choose the model with the interaction (*model 1*). 
+  Both the residual variance and AIC is lower in the model (*model 1*) including the interaction than the model without the interaction (*model 2*). Additionally, the model including the interaction can also be argued for theoretically. It is likely that there is a relationship between the subject's confidence ratings (*pas*) and the type of cue (*task*). For these reasons, we would choose the model with the interaction (*model 1*). 
 
   
 ##### vi. based on your chosen model - write a short report on what this says about the distribution of ratings (count) as dependent on _pas_ and _task_  
 
-
-In the analysis, we investigated the effect of *pas* and *task* on the distribution of ratings (*count*). To test this, we fitted a general linear mixed effects-model with the poisson family as the link function thereby assuming that *count* is distributed as a poisson distribution. Our model has *count* as the outcome variable, *pas* and *task* as fixed effects with those also being included as an interaction term. Additionally, *pas* is modelled as a random slope for each *subject* (i.e., random intercepts are also modelled for each subject). 
+In the analysis, we investigated the effect of *pas* and *task* on the distribution of ratings (*count*). To test this, we fitted a generalized linear mixed effects-model with the poisson family as the link function thereby assuming that *count* is distributed as a poisson distribution. Our model has *count* as the outcome variable, *pas* and *task* as fixed effects with those also being included as an interaction term. Additionally, *pas* is modelled as a random slope for each *subject* (i.e., random intercepts are also modelled for each subject). 
 
 
 Based on the significant estimates in the model output, we can tell that the ratings are not equally distributed across *task* and *pas*. However, *pas* does not solely predict *count*. This makes sense given the experimental design: varying difficulty of task by shortening the duration of the target. On the other hand, *task* solely predicts *count*. This is expected considering that the baseline level is *pas1:tasksingles*. In *task singles*, the cue is simpler and perhaps less distracting which would explain the positive estimates for *taskpairs* (0.231) and *taskquadruplets* (0.346). In other words, the confidence of the participants is lower (that is *pas1*) when the task setting is *pairs* and *quadruplets* than when the task setting is *singles*. Finally, all interaction terms are significant which makes sense considering the participants’ *pas*-scores are affected by the cue type (i.e., *task*). For instance, when the cue type is *quadruplets* it seems that responses are more likely to be near *pas 1* than *pas 4* (the interaction estimates for *quadruplet* are increasingly negative for pas scores going from 1 to 4).   
@@ -518,18 +510,12 @@ rvar_model2<- sum((residuals_model2)^2)
 rvar_model3<- sum((residuals_model3)^2)
 rvar_model4<- sum((residuals_model4)^2)
 
-#residual standard deviation 
-sd_model1<- sqrt((sum(residuals_model1)^2/length(residuals_model1)-2))
-sd_model2<- sqrt((sum(residuals_model2)^2/length(residuals_model2)-2))
-sd_model3<- sqrt((sum(residuals_model3)^2/length(residuals_model3)-2))
-sd_model4<- sqrt((sum(residuals_model4)^2/length(residuals_model4)-2))
-
 #AICs
 AICs <- AIC(correct_model1, correct_model2, correct_model3, correct_model4) #model1 = with interaction, model2 = without interaction
 
 #Table 
-tibble("model"=c("Correct predicted by Task","Correct predicted by Task & Pas", "Correct predicted by Pas", "Correct predicted by Pas*Task"), "residual variance"=c(rvar_model1, rvar_model2, rvar_model3, rvar_model4), "residual sd"=c(sd_model1, sd_model2, sd_model3, sd_model4), "AIC"=c(AICs[1,2], AICs[2,2], AICs[3,2], AICs[4,2]))
+tibble("model"=c("Correct predicted by Task","Correct predicted by Task & Pas", "Correct predicted by Pas", "Correct predicted by Pas*Task"), "residual variance"=c(rvar_model1, rvar_model2, rvar_model3, rvar_model4), "AIC"=c(AICs[1,2], AICs[2,2], AICs[3,2], AICs[4,2]))
 ```
 
-From the tibble output, we see that the last three models are very similar when looking at their residual variance, residual standard deviation and AIC. This may suggest that *pas* is a better predictor than *task* alone. However, in choosing the best model, one must consider the theoretical justifications for each model. It could be argued that model 4 should be chosen since there is an interaction term. It would only make sense that *pas* is modulated by the complexity of the *task* since a harder task is likely to result in more uncertainty. 
+From the tibble output, we see that the last three models are very similar when looking at their residual variance and AIC. This may suggest that *pas* is a better predictor than *task* alone. However, in choosing the best model, one must consider the theoretical justifications for each model. It could be argued that model 4 should be chosen since there is an interaction term. It would only make sense that *pas* is modulated by the complexity of the *task* since a harder task is likely to result in more uncertainty. 
 
