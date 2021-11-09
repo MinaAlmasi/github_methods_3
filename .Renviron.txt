@@ -1,1 +1,0 @@
-RETICULATE_PYTHON=/usr/local/Caskroom/miniconda/base/envs/methods3/bin/python
