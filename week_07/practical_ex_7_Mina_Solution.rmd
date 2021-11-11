@@ -223,6 +223,7 @@ Raschka, S., 2015. Python Machine Learning. Packt Publishing Ltd.
 1) Import the housing dataset using the upper chunk of code from p. 280 
     i. and define the correlation matrix `cm` as done on p. 284  
     ii. based on this matrix, do you expect collinearity can be an issue if we run multiple linear regression  by fitting MEDV on LSTAT, INDUS, NOX and RM?  
+
 2) Fit MEDV on  LSTAT, INDUS, NOX and RM (standardize all five variables by using `StandardScaler.fit_transform`, (`from sklearn.preprocessing import StandardScaler`) by doing multiple linear regression using `LinearRegressionGD` as defined on pp. 285-286
     i. how much does the solution improve in terms of the cost function if you go through 40 iterations instead of the default of 20 iterations?  
     ii. how does the residual sum of squares based on the analytic solution (Ordinary Least Squares) compare to the cost after 40 iterations?
