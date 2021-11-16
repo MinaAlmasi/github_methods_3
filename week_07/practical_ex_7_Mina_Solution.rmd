@@ -155,7 +155,7 @@ plt.show()
 
 #### 3) Simulate 100 samples, each with sample size `len(x)` with $\sigma=5$ normally distributed noise added on top of the true function (iii) 
 ```{python}
-samples = [np.random.normal(loc = 0, scale = 5, size = len(y_true)) for i in range(100)]
+samples = [y_true + np.random.normal(loc = 0, scale = 5, size = len(y_true)) for i in range(100)]
 ```
 
 ##### i. do linear, quadratic and fifth-order fits for each of the 100 samples 
@@ -181,7 +181,7 @@ fifth_order_fits = quadratic_fits = [regressor.fit(X_fifth_order, y) for y in sa
 
 
 ##### ii. create a __new__ figure, `plt.figure`, and plot the linear and the quadratic fits (colour them appropriately); highlight the true value for $x_0=3$. From the graphics alone, judge which fit has the highest bias and which has the highest variance for $x_0$  
-```{r}
+```{python}
 plt.figure()
 [plt.plot(x_reshape, y) for y in linear_fits] #linear
 
