@@ -1,8 +1,10 @@
 ---
-title: "practical_exercise_7 , Methods 3, 2021, autumn semester"
-author: '[FILL IN YOUR NAME]'
-date: "[FILL IN THE DATE]"
-output: html_document
+title: "practical_exercise_7, Methods 3, 2021, autumn semester"
+author: "GR5: Mina Almasi, Daniel Blumenkranz, Anton Drasbæk Schiønning, Matilde Sterup"
+date: '17/11/21'
+output:
+  html_document: default
+  pdf_document: defaults
 ---
 
 <style type="text/css">
@@ -19,7 +21,8 @@ library(reticulate)
 ```{python}
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
+import matplotlib.patches as mpatches
+import pandas as pds
 ```
 
 
@@ -143,7 +146,7 @@ plt.figure() # create new figure
 plt.plot(x, y_true, 'b-') # plot the true function
 plt.plot(x, slope*x+intercept, 'r-') #linear fit
 plt.plot(x, y_quad_fit, 'g-') #quadratic fit
-plt.plot(x, y_fit_fifth, 'y-') #fifth order fit
+plt.plot(x, y_fit_fifth, 'm-') #fifth order fit
 plt.plot(x,y_noise, 'k.') # generated points 
 plt.xlabel('x')
 plt.ylabel('y')
@@ -160,41 +163,159 @@ samples = [y_true + np.random.normal(loc = 0, scale = 5, size = len(y_true)) for
 
 ##### i. do linear, quadratic and fifth-order fits for each of the 100 samples 
 ```{python}
-regressor = LinearRegression()
+#Linear Fits
+linear_fits = []
+linear_predict = []
 
-#Linear Fits 
-linear_fits = [regressor.fit(x_reshape, y) for y in samples]
+for y in samples:
+  regressor = LinearRegression()
+  linear_fits.append(regressor.fit(x_reshape, y))
+  linear_predict.append(regressor.predict(x_reshape))
 
 #Quadratic Fits 
 quadratic = PolynomialFeatures(degree=2)
 X_quadratic = quadratic.fit_transform(x.reshape(-1, 1))
 
-quadratic_fits = [regressor.fit(X_quadratic, y) for y in samples]
+quadratic_fits = []
+quadratic_predict = []
+
+for y in samples:
+  regressor = LinearRegression()
+  quadratic_fits.append(regressor.fit(X_quadratic, y))
+  quadratic_predict.append(regressor.predict(X_quadratic))
 
 #Fifth-order fits
 fifth_order = PolynomialFeatures(degree=5)
 X_fifth_order = fifth_order.fit_transform(x.reshape(-1, 1))
-regressor = LinearRegression()
 
-fifth_order_fits = quadratic_fits = [regressor.fit(X_fifth_order, y) for y in samples]
+fifth_fits = []
+fifth_predict = []
+
+for y in samples:
+  regressor = LinearRegression()
+  fifth_fits.append(regressor.fit(X_fifth_order, y))
+  fifth_predict.append(regressor.predict(X_fifth_order))
 ```
 
 
 ##### ii. create a __new__ figure, `plt.figure`, and plot the linear and the quadratic fits (colour them appropriately); highlight the true value for $x_0=3$. From the graphics alone, judge which fit has the highest bias and which has the highest variance for $x_0$  
 ```{python}
+plt.figure() # create new figure
+[plt.plot(x, y, 'r-', alpha = 0.1) for y in linear_predict]
+[plt.plot(x, y, 'g-', alpha = 0.1) for y in quadratic_predict]
+plt.plot(x, y_true, 'b-') # plot the true function
+plt.axvline(x = 3, color = "black")
+plt.plot(3,9, 'ko')
+plt.xlabel('x')
+plt.ylabel('y')
+
+true = mpatches.Patch(color='blue', label='True Fit')
+linear = mpatches.Patch(color='red', label='Linear Fits')
+quadratic = mpatches.Patch(color='green', label='Quadratic Fits')
+x0 = mpatches.Patch(color='black', label='x0=3')
+
+plt.title('Plotting Linear & Quadratic Fits')
+plt.legend(handles=[true, linear, quadratic, x0])
+plt.show()
+```
+
+Judging from the plot alone, the linear fits seem to not have as much variance as the quadratic fits. However, the linear fits are further away from the true function, indicating more bias than the quadratic fits. 
+    
+##### iii. create a __new__ figure, `plt.figure`, and plot the quadratic and the fifth-order fits (colour them appropriately); highlight the true value for $x_0=3$. From the graphics alone, judge which fit has the highest bias and which has the highest variance for $x_0$  
+```{python}
+plt.figure() # create new figure
+[plt.plot(x, y, 'm-', alpha = 0.3) for y in fifth_predict]
+[plt.plot(x, y, 'g-', alpha = 0.2) for y in quadratic_predict]
+plt.plot(x, y_true, 'b-') # plot the true function
+plt.axvline(x = 3, color = "black")
+plt.plot(3,9, 'ko')
+plt.xlabel('x')
+plt.ylabel('y')
+
+true = mpatches.Patch(color='blue', label='True Fit')
+quadratic = mpatches.Patch(color='green', label='Quadratic Fits')
+fifth = mpatches.Patch(color='magenta', label='Fifth Order Fits')
+x0 = mpatches.Patch(color='black', label='x0=3')
+
+plt.title('Plotting Quadratic & Fifth-Order Fits')
+plt.legend(handles=[true, quadratic, fifth, x0])
+plt.show()
+```
+
+The two types of fits seem to be quite similar although the fifth order fits seem to have more variance. This makes sense considering the added complexity of the fifth order fits increases chances of overfitting to the data. 
+
+    
+##### iv. estimate the __bias__ and __variance__ at $x_0$ for the linear, the quadratic and the fifth-order fits (the expected value $E[\hat{f}(x_0)] - f(x_0)$ is found by taking the mean of all the simulated, $\hat{f}(x_0)$, differences) (ii)
+
+We calculate the __bias__:
+$bias(\hat{f}(x_0)) = E[\hat{f}(x_0)] - f(x_0)$
+
+```{python}
+## CALCULATING THE BIAS ## 
+y_true[30] # The true value for x0 = 3 is 9. Here we show that this value is number 30 in the array of y-values.
+
+fittedx03_linear = [linear_predict[i][30] for i in range(len(linear_predict))]
+fittedx03_quadratic = [quadratic_predict[i][30] for i in range(len(quadratic_predict))]
+fittedx03_fifth = [fifth_predict[i][30] for i in range(len(fifth_predict))]
+
+bias_linear = np.mean(fittedx03_linear) - 9
+bias_quadratic = np.mean(fittedx03_quadratic) - 9
+bias_fifth = np.mean(fittedx03_fifth) - 9
+
+bias = np.array([bias_linear, bias_quadratic, bias_fifth])
+bias
+
+## CALCULATING THE VARIANCE ##
+var_linear = np.var(fittedx03_linear)
+var_quadratic = np.var(fittedx03_quadratic)
+var_fifth = np.var(fittedx03_fifth)
+
+variance = np.array([var_linear, var_quadratic, var_fifth])
+variance
+```
+    
+##### v. show how the __squared bias__ and the __variance__ is related to the complexity of the fitted models  
+```{python}
+## CALCULATING THE SQUARED BIAS ## 
+squared_bias_linear = squared(bias_linear)
+squared_bias_quadratic = squared(bias_quadratic)
+squared_bias_fifth = squared(bias_fifth)
+
+squared_bias = np.array([squared_bias_linear, squared_bias_quadratic, squared_bias_fifth])
+squared_bias
+
+## VISUALISING ## 
 plt.figure()
-[plt.plot(x_reshape, y) for y in linear_fits] #linear
+plt.plot(["linear", "quadratic", "fifth"], squared_bias, "ko")
+plt.plot(["linear", "quadratic", "fifth"], variance, "ro")
+plt.legend(["Squared Bias", "Variance"])
+plt.title("Visualising Squared Bias & Variance")
+plt.show()
 
 ```
 
+As predicted from the plot made in 1.3ii, the linear fit has the highest bias but lowest variance. The fifth order plots has the lowest bias, but also the highest variance. This illustrates the bias-variance trade-off.  
     
-iii. create a __new__ figure, `plt.figure`, and plot the quadratic and the fifth-order fits (colour them appropriately); highlight the true value for $x_0=3$. From the graphics alone, judge which fit has the highest bias and which has the highest variance for $x_0$  
-    
-iv. estimate the __bias__ and __variance__ at $x_0$ for the linear, the quadratic and the fifth-order fits (the expected value $E[\hat{f}(x_0)] - f(x_0)$ is found by taking the mean of all the simulated, $\hat{f}(x_0)$, differences)  
-    
-v. show how the __squared bias__ and the __variance__ is related to the complexity of the fitted models  
-    
-vi. simulate __epsilon__: `epsilon = np.random.normal(scale=5, size=100)`. Based on your simulated values of __bias, variance and epsilon__, what is the __Mean Squared Error__ for each of the three fits? Which fit is better according to this measure? 
+##### vi. simulate __epsilon__: `epsilon = np.random.normal(scale=5, size=100)`. Based on your simulated values of __bias, variance and epsilon__, what is the __Mean Squared Error__ for each of the three fits? Which fit is better according to this measure? (III)!
+
+The formula for the expected prediction error or __Mean Squared Error__ is:  
+$E[(y_0 - \hat{f}(x_0))^2] =  bias(\hat{f}(x_0))^2 + var(\hat{f}(x_0)) + \sigma^2$
+
+```{python}
+epsilon = np.random.normal(scale=5, size=100)
+#Why the size of 100?
+
+MSE_linear = bias_linear - var_linear + epsilon
+MSE_quadratic = bias_quadratic - var_quadratic + epsilon
+MSE_fifth = bias_fifth - var_fifth + epsilon
+
+MSE_fifth
+
+MSE = np.array([MSE_linear, MSE_quadratic, MSE_fifth])
+MSE
+
+```
+
 
     
 ```{python, eval=FALSE}
