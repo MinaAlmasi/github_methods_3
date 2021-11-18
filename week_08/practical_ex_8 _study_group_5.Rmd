@@ -34,7 +34,11 @@ library(reticulate)
 import numpy as np 
 import os 
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+```
 
+
+```{python}
 os.chdir("/Users/minaalmasi/Documents/Cognitive_Science/Methods_3/methods3_code/data_W8")
 ```
 
@@ -67,7 +71,6 @@ X = data[0,:,:]
 
 cov_temp = np.zeros(shape = (102, 102))
 
-
 for i in range(N):
   X = data[i,:,:]
   X_T = np.transpose(X)
@@ -94,20 +97,72 @@ mean_teslas.shape
 ```{python}
 plt.figure()
 plt.plot(times, mean_teslas.T)
+plt.axvline(color = "black")
+plt.axhline(color = "black")
+plt.title("The Average of the Magnetic Field Across Repetitions")
+plt.xlabel("Time (ms)")
+plt.ylabel("Magnetic Field (Tesla)")
 plt.show()
 ```
 
-
 ##### vi. Find the maximal magnetic field in the average. Then use `np.argmax` and `np.unravel_index` to find the sensor that has the maximal magnetic field.  
+```{python}
+# MAXIMIMAL MAGNETIC FIELD AVG. #
+np.max(mean_teslas)
+
+# SENSOR WITH THE MAXIMAL MAGNETIC FIELD # 
+np.unravel_index(np.argmax(mean_teslas), mean_teslas.shape)
+
+times[112] # time in ms 
+```
+
+The maximal magnetic field in the average is 2.7886216843591933e-13. 
+
+With np.unravel_index and np.argmax we get the sensor with the maximal magnetic field to be 73 as given by the coordinate system (73, 112). In the calculation, the time is given in the time-samples, but by printing this index from the times vector, we get the time in ms of 248. This number fits the peak of the red sensor in the plot from 1.1v. 
 
 ##### vii. Plot the magnetic field for each of the repetitions (a line for each) for the sensor that has the maximal magnetic field. Highlight the time point with the maximal magnetic field in the average (as found in 1.1.v) using `plt.axvline`  
+```{python}
+## SAVING SENSOR 73 ## 
+sensor73 = data[:,73,:]
+
+## PLOTTING SENSOR 73 ##
+plt.figure()
+plt.plot(times, sensor73.T)
+plt.axvline(times[112], color = "black", linestyle = "--")
+plt.axvline(color = "black")
+plt.axhline(color = "black")
+
+time_point_max = mpatches.Patch(color='black', label='time at avg maximal magnetic field', linestyle = "--")
+
+plt.legend(handles=[time_point_max])
+
+plt.title("The Average of the Magnetic Field Across Repetitions")
+plt.xlabel("Time (ms)")
+plt.ylabel("Magnetic Field (Tesla)")
+
+plt.show()
+```
+
+**ATTENCIONE** fix plot legend
 
 ##### viii. Describe in your own words how the response found in the average is represented in the single repetitions. But do make sure to use the concepts _signal_ and _noise_ and comment on any differences on the range of values on the y-axis  
 
+**ATTENCIONE ** write later
+
 #### 2) Now load `pas_vector.npy` (call it `y`). PAS is the same as in Assignment 2, describing the clarity of the subjective experience the subject reported after seeing the briefly presented stimulus  
+```{python}
+y = np.load("pas_vector.npy")
+```
+
     
 ##### i. Which dimension in the `data` array does it have the same length as?  
-  
+```{python}
+y.shape
+y.shape == data[:,0,0].shape
+```
+
+
+
 ##### ii. Now make four averages (As in Exercise 1.1.iii), one for each PAS rating, and plot the four time courses (one for each PAS rating) for the sensor found in Exercise 1.1.v  
 
 ##### iii. Notice that there are two early peaks (measuring visual activity from the brain), one before 200 ms and one around 250 ms. Describe how the amplitudes of responses are related to the four PAS-scores. Does PAS 2 behave differently than expected?  
