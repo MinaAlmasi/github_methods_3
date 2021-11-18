@@ -157,13 +157,22 @@ y = np.load("pas_vector.npy")
     
 ##### i. Which dimension in the `data` array does it have the same length as?  
 ```{python}
-y.shape
-y.shape == data[:,0,0].shape
+# CHECKING the length of y #
+len(y)
+
+# The dimension it has the same length as #
+len(y) == len(data[:,0,0])
+
 ```
 
+y has the same length as the first dimension *repetitions* in our data array. 
 
 
 ##### ii. Now make four averages (As in Exercise 1.1.iii), one for each PAS rating, and plot the four time courses (one for each PAS rating) for the sensor found in Exercise 1.1.v  
+```{python}
+
+```
+
 
 ##### iii. Notice that there are two early peaks (measuring visual activity from the brain), one before 200 ms and one around 250 ms. Describe how the amplitudes of responses are related to the four PAS-scores. Does PAS 2 behave differently than expected?  
 
