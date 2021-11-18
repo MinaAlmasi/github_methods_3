@@ -33,6 +33,7 @@ library(reticulate)
 ```{python}
 import numpy as np 
 import os 
+import matplotlib.pyplot as plt
 
 os.chdir("/Users/minaalmasi/Documents/Cognitive_Science/Methods_3/methods3_code/data_W8")
 ```
@@ -41,29 +42,75 @@ os.chdir("/Users/minaalmasi/Documents/Cognitive_Science/Methods_3/methods3_code/
 #### 1) Load `megmag_data.npy` and call it `data` using `np.load`. You can use `join`, which can be imported from `os.path`, to create paths from different string segments
 ```{python}
 data = np.load("megmag_data.npy")
-
-data.shape # prints (number of repetitions, number sensors, number of time samples)
 ```
-
-Time samples recorded every 4 milliseconds. 
 
 ##### i. The data is a 3-dimensional array. The first dimension is number of repetitions of a visual stimulus , the second dimension is the number of sensors that record magnetic fields (in Tesla) that stem from neurons activating in the brain, and the third dimension is the number of time samples. How many repetitions, sensors and time samples are there?  
 ```{python}
+data.shape # prints (number of repetitions, number sensors, number of time samples)
 
+print(data)
+```
+
+There are 682 repetitions, 102 number of sensors and 251 number of time samples. 
+
+##### ii. The time range is from (and including) -200 ms to (and including) 800 ms with a sample recorded every 4 ms. At time 0, the visual stimulus was briefly presented. Create a 1-dimensional array called `times` that represents this.  
+
+```{python}
+times = np.arange(-200, 804, 4)
+```
+
+##### iii. Create the sensor covariance matrix $\Sigma_{XX}$: $$\Sigma_{XX} = \frac 1 N \sum_{i=1}^N XX^T$$ $N$ is the number of repetitions and $X$ has $s$ rows and $t$ columns (sensors and time), thus the shape is $X_{s\times t}$. Do the sensors pick up independent signals? (Use `plt.imshow` to plot the sensor covariance matrix)  
+```{python}
+N = len(data)
+
+X = data[0,:,:]
+
+cov_temp = np.zeros(shape = (102, 102))
+
+
+for i in range(N):
+  X = data[i,:,:]
+  X_T = np.transpose(X)
+  cov_temp += np.dot(X, X_T)
+
+cov = cov_temp / N
+
+plt.figure()
+plt.imshow(cov)
+plt.show()
+```
+
+The sensors seem to pick up different signals for the most part, since the covariance matrix plot of the sensors has a petrol/navy color in general, which corresponds to a covariance of about 0. The yellow color at around 50 however indicates high covariance. 
+
+
+##### iv. Make an average over the repetition dimension using `np.mean` - use the `axis` argument. (The resulting array should have two dimensions with sensors as the first and time as the second)  
+```{python}
+mean_teslas = np.mean(data, axis = 0) #axis = 0 indicates the first dimension (repetitions)
+
+mean_teslas.shape
+```
+
+##### v. Plot the magnetic field (based on the average) as it evolves over time for each of the sensors (a line for each) (time on the x-axis and magnetic field on the y-axis). Add a horizontal line at $y = 0$ and a vertical line at $x = 0$ using `plt.axvline` and `plt.axhline`  
+```{python}
+plt.figure()
+plt.plot(times, mean_teslas.T)
+plt.show()
 ```
 
 
-##### ii. The time range is from (and including) -200 ms to (and including) 800 ms with a sample recorded every 4 ms. At time 0, the visual stimulus was briefly presented. Create a 1-dimensional array called `times` that represents this.  
-    iii. Create the sensor covariance matrix $\Sigma_{XX}$: $$\Sigma_{XX} = \frac 1 N \sum_{i=1}^N XX^T$$ $N$ is the number of repetitions and $X$ has $s$ rows and $t$ columns (sensors and time), thus the shape is $X_{s\times t}$. Do the sensors pick up independent signals? (Use `plt.imshow` to plot the sensor covariance matrix)  
-    iv. Make an average over the repetition dimension using `np.mean` - use the `axis` argument. (The resulting array should have two dimensions with time as the first and magnetic field as the second)  
-    v. Plot the magnetic field (based on the average) as it evolves over time for each of the sensors (a line for each) (time on the x-axis and magnetic field on the y-axis). Add a horizontal line at $y = 0$ and a vertical line at $x = 0$ using `plt.axvline` and `plt.axhline`  
-    vi. Find the maximal magnetic field in the average. Then use `np.argmax` and `np.unravel_index` to find the sensor that has the maximal magnetic field.  
-    vii. Plot the magnetic field for each of the repetitions (a line for each) for the sensor that has the maximal magnetic field. Highlight the time point with the maximal magnetic field in the average (as found in 1.1.v) using `plt.axvline`  
-    viii. Describe in your own words how the response found in the average is represented in the single repetitions. But do make sure to use the concepts _signal_ and _noise_ and comment on any differences on the range of values on the y-axis  
-2) Now load `pas_vector.npy` (call it `y`). PAS is the same as in Assignment 2, describing the clarity of the subjective experience the subject reported after seeing the briefly presented stimulus  
-    i. Which dimension in the `data` array does it have the same length as?  
-    ii. Now make four averages (As in Exercise 1.1.iii), one for each PAS rating, and plot the four time courses (one for each PAS rating) for the sensor found in Exercise 1.1.v  
-    iii. Notice that there are two early peaks (measuring visual activity from the brain), one before 200 ms and one around 250 ms. Describe how the amplitudes of responses are related to the four PAS-scores. Does PAS 2 behave differently than expected?  
+##### vi. Find the maximal magnetic field in the average. Then use `np.argmax` and `np.unravel_index` to find the sensor that has the maximal magnetic field.  
+
+##### vii. Plot the magnetic field for each of the repetitions (a line for each) for the sensor that has the maximal magnetic field. Highlight the time point with the maximal magnetic field in the average (as found in 1.1.v) using `plt.axvline`  
+
+##### viii. Describe in your own words how the response found in the average is represented in the single repetitions. But do make sure to use the concepts _signal_ and _noise_ and comment on any differences on the range of values on the y-axis  
+
+#### 2) Now load `pas_vector.npy` (call it `y`). PAS is the same as in Assignment 2, describing the clarity of the subjective experience the subject reported after seeing the briefly presented stimulus  
+    
+##### i. Which dimension in the `data` array does it have the same length as?  
+  
+##### ii. Now make four averages (As in Exercise 1.1.iii), one for each PAS rating, and plot the four time courses (one for each PAS rating) for the sensor found in Exercise 1.1.v  
+
+##### iii. Notice that there are two early peaks (measuring visual activity from the brain), one before 200 ms and one around 250 ms. Describe how the amplitudes of responses are related to the four PAS-scores. Does PAS 2 behave differently than expected?  
 
 # EXERCISE 2 - Do logistic regression to classify pairs of PAS-ratings  
 
