@@ -136,7 +136,7 @@ time_point_max = mpatches.Patch(color='black', label='time at avg maximal magnet
 
 plt.legend(handles=[time_point_max])
 
-plt.title("The Average of the Magnetic Field Across Repetitions")
+plt.title("Average Magnetic Field Across Repetitions")
 plt.xlabel("Time (ms)")
 plt.ylabel("Magnetic Field (Tesla)")
 
@@ -167,14 +167,66 @@ len(y) == len(data[:,0,0])
 
 y has the same length as the first dimension *repetitions* in our data array. 
 
-
 ##### ii. Now make four averages (As in Exercise 1.1.iii), one for each PAS rating, and plot the four time courses (one for each PAS rating) for the sensor found in Exercise 1.1.v  
 ```{python}
+### FINDING the indexes of the pas ratings 
+pas1 = np.where(y == 1)
+pas2 = np.where(y == 2)
+pas3 = np.where(y == 3)
+pas4 = np.where(y == 4)
 
+### FINDING the mean TESLA values for each pas rating for all time values 
+mean_pas1 = np.mean(sensor73[pas1], axis = 0)
+mean_pas1.shape
+
+mean_pas2 = np.mean(sensor73[pas2], axis = 0)
+mean_pas2.shape
+
+mean_pas3 = np.mean(sensor73[pas3], axis = 0)
+mean_pas3.shape
+
+mean_pas4 = np.mean(sensor73[pas4], axis = 0)
+mean_pas4.shape 
+
+## PLOTTING the mean TESLA values for sensor 73 for each pas rating 
+plt.figure()
+plt.plot(times, mean_pas1.T, color = "blue")
+plt.plot(times, mean_pas2.T, color = "green")
+plt.plot(times, mean_pas3.T, color = "orange")
+plt.plot(times, mean_pas4.T, color = "red")
+plt.axvline(color = "black")
+plt.axhline(color = "black")
+
+pas1 = mpatches.Patch(color='blue', label='pas1')
+pas2 = mpatches.Patch(color='green', label='pas2')
+pas3 = mpatches.Patch(color='orange', label='pas3')
+pas4 = mpatches.Patch(color='red', label='pas4')
+
+plt.legend(handles=[pas1, pas2, pas3, pas4])
+
+
+plt.title("Average Magnetic Field Across Repetitions for Sensor 73")
+plt.xlabel("Time (ms)")
+plt.ylabel("Magnetic Field (Tesla)")
+
+plt.show()
 ```
 
 
 ##### iii. Notice that there are two early peaks (measuring visual activity from the brain), one before 200 ms and one around 250 ms. Describe how the amplitudes of responses are related to the four PAS-scores. Does PAS 2 behave differently than expected?  
+
+To recap, the perceptual awareness scale has 4 categorically different ratings: 
+
+1. No Experience (NE)
+2. Weak Glimpse (WG)
+3. Almost Clear Experience (ACE)
+4. Clear Experience (CE)
+
+Firstly, the curve for pas 1 fits the theoretical expectations that having no experience should result in the least amount of activity (measured through magnetic field in this case). Following this logic, we would expect each pas rating to gradually increase in activation. 
+
+However, pas3 and pas4 is very similar in activation which is not surprising considering the rather opaque difference in their definitions.  
+
+Unexpectedly, pas2 has the highest peak which goes against the theoretical reasoning.
 
 # EXERCISE 2 - Do logistic regression to classify pairs of PAS-ratings  
 
