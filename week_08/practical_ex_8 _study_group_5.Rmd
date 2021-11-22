@@ -122,7 +122,7 @@ With np.unravel_index and np.argmax we get the sensor with the maximal magnetic 
 
 ##### vii. Plot the magnetic field for each of the repetitions (a line for each) for the sensor that has the maximal magnetic field. Highlight the time point with the maximal magnetic field in the average (as found in 1.1.v) using `plt.axvline`  
 ```{python}
-## SAVING SENSOR 73 ## 
+## SELECTING SENSOR 73 ## 
 sensor73 = data[:,73,:]
 
 ## PLOTTING SENSOR 73 ##
@@ -136,7 +136,7 @@ time_point_max = mpatches.Patch(color='black', label='time at avg maximal magnet
 
 plt.legend(handles=[time_point_max])
 
-plt.title("Average Magnetic Field Across Repetitions")
+plt.title("Average Magnetic Field Across Repetitions (Sensor 73)")
 plt.xlabel("Time (ms)")
 plt.ylabel("Magnetic Field (Tesla)")
 
