@@ -122,7 +122,7 @@ With np.unravel_index and np.argmax we get the sensor with the maximal magnetic 
 
 ##### vii. Plot the magnetic field for each of the repetitions (a line for each) for the sensor that has the maximal magnetic field. Highlight the time point with the maximal magnetic field in the average (as found in 1.1.v) using `plt.axvline`  
 ```{python}
-## SELECTING SENSOR 73 ## 
+## SAVING SENSOR 73 ## 
 sensor73 = data[:,73,:]
 
 ## PLOTTING SENSOR 73 ##
@@ -136,7 +136,7 @@ time_point_max = mpatches.Patch(color='black', label='time at avg maximal magnet
 
 plt.legend(handles=[time_point_max])
 
-plt.title("Average Magnetic Field Across Repetitions (Sensor 73)")
+plt.title("Average Magnetic Field Across Repetitions")
 plt.xlabel("Time (ms)")
 plt.ylabel("Magnetic Field (Tesla)")
 
@@ -197,12 +197,12 @@ plt.plot(times, mean_pas4.T, color = "red")
 plt.axvline(color = "black")
 plt.axhline(color = "black")
 
-pas1 = mpatches.Patch(color='blue', label='pas1')
-pas2 = mpatches.Patch(color='green', label='pas2')
-pas3 = mpatches.Patch(color='orange', label='pas3')
-pas4 = mpatches.Patch(color='red', label='pas4')
+Pas1 = mpatches.Patch(color='blue', label='pas1')
+Pas2 = mpatches.Patch(color='green', label='pas2')
+Pas3 = mpatches.Patch(color='orange', label='pas3')
+Pas4 = mpatches.Patch(color='red', label='pas4')
 
-plt.legend(handles=[pas1, pas2, pas3, pas4])
+plt.legend(handles=[Pas1, Pas2, Pas3, Pas4])
 
 
 plt.title("Average Magnetic Field Across Repetitions for Sensor 73")
@@ -230,14 +230,97 @@ Unexpectedly, pas2 has the highest peak which goes against the theoretical reaso
 
 # EXERCISE 2 - Do logistic regression to classify pairs of PAS-ratings  
 
-1) Now, we are going to do Logistic Regression with the aim of classifying the PAS-rating given by the subject  
-    i. We'll start with a binary problem - create a new array called `data_1_2` that only contains PAS responses 1 and 2. Similarly, create a `y_1_2` for the target vector  
-    ii. Scikit-learn expects our observations (`data_1_2`) to be in a 2d-array, which has samples (repetitions) on dimension 1 and features (predictor variables) on dimension 2. Our `data_1_2` is a three-dimensional array. Our strategy will be to collapse our two last dimensions (sensors and time) into one dimension, while keeping the first dimension as it is (repetitions). Use `np.reshape` to create a variable `X_1_2` that fulfils these criteria.  
-    iii. Import the `StandardScaler` and scale `X_1_2`  
-    iv. Do a standard `LogisticRegression` - can be imported from `sklearn.linear_model` - make sure there is no `penalty` applied  
-    v. Use the `score` method of `LogisticRegression` to find out how many labels were classified correctly. Are we overfitting? Besides the score, what would make you suspect that we are overfitting?  
-    vi. Now apply the _L1_ penalty instead - how many of the coefficients (`.coef_`) are non-zero after this?  
-    vii. Create a new reduced $X$ that only includes the non-zero coefficients - show the covariance of the non-zero features (two covariance matrices can be made; $X_{reduced}X_{reduced}^T$ or $X_{reduced}^TX_{reduced}$ (you choose the right one)) . Plot the covariance of the features using `plt.imshow`. Compared to the plot from 1.1.iii, do we see less covariance?  
+1) Now, we are going to do Logistic Regression with the aim of classifying the PAS-rating given by the subject
+
+i. We'll start with a binary problem - create a new array called `data_1_2` that only contains PAS responses 1 and 2. Similarly, create a `y_1_2` for the target vector 
+```{python}
+pas1_2 = np.where((y==1)|(y==2))
+data_1_2=data[pas1_2]
+
+data_1_2.shape #checking that we did it right
+
+#Target vector
+y_1_2 = y[(y==1)|(y==2)] 
+y_1_2
+```
+
+ii. Scikit-learn expects our observations (`data_1_2`) to be in a 2d-array, which has samples (repetitions) on dimension 1 and features (predictor variables) on dimension 2. Our `data_1_2` is a three-dimensional array. Our strategy will be to collapse our two last dimensions (sensors and time) into one dimension, while keeping the first dimension as it is (repetitions). Use `np.reshape` to create a variable `X_1_2` that fulfills these criteria. 
+```{python}
+X_1_2 = data_1_2.reshape(data_1_2.shape[0],-1, order = "A")
+X_1_2.shape
+X_1_2
+```
+
+iii. Import the `StandardScaler` and scale `X_1_2` 
+```{python}
+from sklearn.preprocessing import StandardScaler 
+scaler = StandardScaler()
+
+X_1_2_scaled = scaler.fit_transform(X_1_2)
+X_1_2_scaled.shape
+
+```
+
+
+
+iv. Do a standard `LogisticRegression` - can be imported from `sklearn.linear_model` - make sure there is no `penalty` applied  
+```{python}
+from sklearn.linear_model import LogisticRegression
+lr = LogisticRegression(penalty='none')
+
+lr.fit(X_1_2_scaled,y_1_2)
+```
+
+v. Use the `score` method of `LogisticRegression` to find out how many labels were classified correctly. Are we overfitting? Besides the score, what would make you suspect that we are overfitting?  
+```{python}
+lr.score(X_1_2_scaled, y_1_2)
+
+```
+If we interpret this correctly, our logistic regression correctly classifies 100 % of the labels, which makes us suspect that something is wrong. We believe we are overfitting, because the accuracy is very high. We have not split the data into test and training sets, so the model "knows" the correct classifications, as it has been trained on the very data it is asked to predict.
+
+vi. Now apply the _L1_ penalty instead - how many of the coefficients (`.coef_`) are non-zero after this?  
+```{python}
+lr = LogisticRegression(penalty='l1', solver ='liblinear', random_state=1)
+lr.fit(X_1_2_scaled,y_1_2)
+lr.coef_.shape
+lr.score(X_1_2_scaled, y_1_2)
+
+np.count_nonzero(lr.coef_) #counting the non-zero coefficients
+```
+vii. Create a new reduced $X$ that only includes the non-zero coefficients - show the covariance of the non-zero features (two covariance matrices can be made; $X_{reduced}X_{reduced}^T$ or $X_{reduced}^TX_{reduced}$ (you choose the right one)) . Plot the covariance of the features using `plt.imshow`. Compared to the plot from 1.1.iii, do we see less covariance? 
+```{python}
+###REDUCED X###
+non_zero = np.where(lr.coef_ != 0)
+print(non_zero) # We only need the information in the second column
+print(non_zero[1])
+
+reduced_X = X_1_2_scaled[:,non_zero[1]] # Taking the previous X_1_2_scaled and subsetting the non-zero coefficients
+
+reduced_X.shape
+
+###COVARIANCE OF NON-ZERO FEATURES###
+
+#We would like to end up with a 282 by 282 matrix. When we multiply two matrices, we get the first matrix' rows and the second matrix' columns. We choose the formula, where the rows of the transposed matrix (282) is multiplied with the columns of the matrix (282) - features x features
+
+reduced_X_cov = reduced_X.T@reduced_X
+reduced_X_cov.shape #hurra
+
+###Plotting the covariance###
+plt.figure()
+plt.imshow(reduced_X_cov)
+plt.colorbar()
+plt.show()
+
+#1.1iii
+plt.figure()
+plt.imshow(cov)
+plt.colorbar()
+plt.show()
+```
+
+
+
+
 2) Now, we are going to build better (more predictive) models by using cross-validation as an outcome measure    
     i. Import `cross_val_score` and `StratifiedKFold` from `sklearn.model_selection`  
     ii. To make sure that our training data sets are not biased to one target (PAS) or the other, create `y_1_2_equal`, which should have an equal number of each target. Create a similar `X_1_2_equal`. The function `equalize_targets_binary` in the code chunk associated with Exercise 2.2.ii can be used. Remember to scale `X_1_2_equal`!  
