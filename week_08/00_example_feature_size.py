@@ -57,7 +57,11 @@ from sklearn.model_selection import cross_val_score, StratifiedKFold
 # or as close as possible.
 cv = StratifiedKFold()
 
+<<<<<<< HEAD
 X = iris.data[:, 0:1]
+=======
+X = iris.data[:, 0:4]
+>>>>>>> 562bc8f01987865b989a63b9628a180b996e93f1
 y = iris.target
 
 from sklearn.preprocessing import StandardScaler
@@ -113,11 +117,18 @@ x2 = X_std[:, 1:2]
 
 sds = [100, 10, 1, 0.1, 0.01]
 for sd in sds:
+<<<<<<< HEAD
     gamma = 1 / sd **2
+=======
+>>>>>>> 562bc8f01987865b989a63b9628a180b996e93f1
     k = kernel(x1, x2, sd)
     plt.figure()
     plt.plot(k)
     plt.xticks(ticks=range(len(y)), labels=y)
+<<<<<<< HEAD
     plt.title('Similarity between features x1 and x2 with sd. ' + str(sd) + ', gamma: ' + str(gamma))
+=======
+    plt.title('Similarity between features x1 and x2 with sd. ' + str(sd))
+>>>>>>> 562bc8f01987865b989a63b9628a180b996e93f1
     plt.ylim(-0.1, 1.1)
     plt.show()
