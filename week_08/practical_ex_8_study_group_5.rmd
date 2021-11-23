@@ -246,7 +246,7 @@ y_1_2
 
 ii. Scikit-learn expects our observations (`data_1_2`) to be in a 2d-array, which has samples (repetitions) on dimension 1 and features (predictor variables) on dimension 2. Our `data_1_2` is a three-dimensional array. Our strategy will be to collapse our two last dimensions (sensors and time) into one dimension, while keeping the first dimension as it is (repetitions). Use `np.reshape` to create a variable `X_1_2` that fulfills these criteria. 
 ```{python}
-X_1_2 = data_1_2.reshape(data_1_2.shape[0],-1, order = "A")
+X_1_2 = data_1_2.reshape(data_1_2.shape[0],-1)
 X_1_2.shape
 X_1_2
 ```
