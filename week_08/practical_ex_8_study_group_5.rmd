@@ -467,7 +467,31 @@ The amount of predictions that are correct with the penalized model (log 1e-5) a
 ##### v. Instead of fitting a model on all `n_sensors * n_samples` features, fit  a logistic regression (same kind as in Exercise 2.2.iv (use the `C` that resulted in the best prediction)) for __each__ time sample and use the same cross-validation as in Exercise 2.2.iii. What are the time points where classification is best? Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)  
 
 ```{python}
+## empty list for the cross scores ##
+cross_scores = []
 
+## defining cv again for good measure ## 
+cv = StratifiedKFold(n_splits=5)
+
+## for loop ## 
+for i in range(len(data_1_2_equal[0,0,:])):
+  #Creating data and scaling 
+  scaler = StandardScaler()
+  X_time = data_1_2_equal[:,:,i]
+  X_time_scaled = scaler.fit_transform(X_time)
+  
+  #Creating a logistic regression object
+  lr = LogisticRegression(penalty='l2', C=1e-5)
+  
+  #Cross-validating 
+  score = cross_val_score(lr, X_time, y_1_2_equal, cv = cv)
+  
+  #taking the mean 
+  mean = np.mean(score)
+  
+  #appending the mean
+  cross_scores.append(mean)
+  
 
 
 ```
