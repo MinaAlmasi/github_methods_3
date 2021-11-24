@@ -465,7 +465,10 @@ print("Correct Predictions Log 1e-5:", len(np.where(accuracy_log1e_neg5 == True)
 The amount of predictions that are correct with the penalized model (log 1e-5) are 118 whereas the non-penalised model only has 106. 
 
 ##### v. Instead of fitting a model on all `n_sensors * n_samples` features, fit  a logistic regression (same kind as in Exercise 2.2.iv (use the `C` that resulted in the best prediction)) for __each__ time sample and use the same cross-validation as in Exercise 2.2.iii. What are the time points where classification is best? Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)  
+
 ```{python}
+
+
 
 ```
 
