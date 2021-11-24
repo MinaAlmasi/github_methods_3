@@ -231,9 +231,9 @@ Unexpectedly, pas2 has the highest peak which goes against the theoretical reaso
 
 # EXERCISE 2 - Do logistic regression to classify pairs of PAS-ratings  
 
-1) Now, we are going to do Logistic Regression with the aim of classifying the PAS-rating given by the subject
+#### 1) Now, we are going to do Logistic Regression with the aim of classifying the PAS-rating given by the subject
 
-i. We'll start with a binary problem - create a new array called `data_1_2` that only contains PAS responses 1 and 2. Similarly, create a `y_1_2` for the target vector 
+##### i. We'll start with a binary problem - create a new array called `data_1_2` that only contains PAS responses 1 and 2. Similarly, create a `y_1_2` for the target vector 
 ```{python}
 pas1_2 = np.where((y==1)|(y==2))
 data_1_2=data[pas1_2]
@@ -414,6 +414,8 @@ Our model is barely above chance level (0.535) when you take the mean of the pre
 ##### iv. Do L2-regularisation with the following `Cs=  [1e5, 1e1, 1e-5]`. Use the same kind of cross-validation as in Exercise 2.2.iii. In the best-scoring of these models, how many more/fewer predictions are correct (on average)? 
 
 ```{python}
+## L2-Regularisation & Cross-Validation Calculations ## 
+
 #Log 1e5 
 log_1e5 = LogisticRegression(penalty='l2', C=1e5)
 log_1e5.fit(X_1_2_equal_scaled, y_1_2_equal)
@@ -432,21 +434,35 @@ log_1e_neg5 = LogisticRegression(penalty='l2', C=1e-5)
 log_1e_neg5.fit(X_1_2_equal_scaled, y_1_2_equal)
 
 scores_log_1e_neg5 = cross_val_score(log_1e_neg5, X_1_2_equal_scaled, y_1_2_equal, cv=cv)
-
-from sklearn.model_selection import cross_val_predict
-
-predict_log1e_neg5 = cross_val_predict(log_1e_neg5, X_1_2_equal_scaled, y_1_2_equal, cv=cv)
-
-
-## Cross-validation Score ## 
-print(np.mean(scores_log_1e5))
-print(np.mean(scores_log_1e1))
-print(np.mean(scores_log_1e_neg5))
-
-
 ```
 
-The model with the lowest C has the highest accuracy (0.596) meaning that introducing penalty improves prediction accuracy.  
+
+```{python}
+## Cross-validation Score ## 
+print("Cross-Validation Score w. C = 1e5:", np.mean(scores_log_1e5).round(3))
+print("Cross-Validation Score w. C = 1e1:", np.mean(scores_log_1e1).round(3))
+print("Cross-Validation Score w. C = 1e-5:", np.mean(scores_log_1e_neg5).round(3))
+```
+
+The model with the lowest C ($C = 1e-5$) has the highest accuracy (0.596) meaning that introducing penalty improves prediction accuracy. We can count the amount of predictions that are correct and compare with the model with no penalty made in iii:
+
+```{python}
+## Amount of predictions correct ## 
+from sklearn.model_selection import cross_val_predict
+
+## Accuracy Log 1e-5
+predict_log1e_neg5 = cross_val_predict(log_1e_neg5, X_1_2_equal_scaled, y_1_2_equal, cv=cv)
+accuracy_log1e_neg5 = predict_log1e_neg5 == y_1_2_equal
+
+## Accuracy Log Model 2.2iii
+predict_log = cross_val_predict(log, X_1_2_equal_scaled, y_1_2_equal, cv=cv)
+accuracy_log = predict_log == y_1_2_equal
+
+print("Correct Predictions Log 2.2iii:", len(np.where(accuracy_log == True)[0]))
+print("Correct Predictions Log 1e-5:", len(np.where(accuracy_log1e_neg5 == True)[0]))
+```
+
+The amount of predictions that are correct with the penalized model (log 1e-5) are 118 whereas the non-penalised model only has 106. 
 
 ##### v. Instead of fitting a model on all `n_sensors * n_samples` features, fit  a logistic regression (same kind as in Exercise 2.2.iv (use the `C` that resulted in the best prediction)) for __each__ time sample and use the same cross-validation as in Exercise 2.2.iii. What are the time points where classification is best? Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)  
 ```{python}
