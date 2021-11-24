@@ -51,8 +51,6 @@ data = np.load("megmag_data.npy")
 ##### i. The data is a 3-dimensional array. The first dimension is number of repetitions of a visual stimulus , the second dimension is the number of sensors that record magnetic fields (in Tesla) that stem from neurons activating in the brain, and the third dimension is the number of time samples. How many repetitions, sensors and time samples are there?  
 ```{python}
 data.shape # prints (number of repetitions, number sensors, number of time samples)
-
-print(data)
 ```
 
 There are 682 repetitions, 102 number of sensors and 251 number of time samples. 
@@ -65,22 +63,23 @@ times = np.arange(-200, 804, 4)
 
 ##### iii. Create the sensor covariance matrix $\Sigma_{XX}$: $$\Sigma_{XX} = \frac 1 N \sum_{i=1}^N XX^T$$ $N$ is the number of repetitions and $X$ has $s$ rows and $t$ columns (sensors and time), thus the shape is $X_{s\times t}$. Do the sensors pick up independent signals? (Use `plt.imshow` to plot the sensor covariance matrix)  
 ```{python}
-N = len(data)
+N = len(data) #length of data
 
-X = data[0,:,:]
+cov_temp = np.zeros(shape = (102, 102)) #creating an empty matrix
 
-cov_temp = np.zeros(shape = (102, 102))
-
-for i in range(N):
+for i in range(N): #for loop in the range of the data 
   X = data[i,:,:]
   X_T = np.transpose(X)
   cov_temp += np.dot(X, X_T)
 
+#dividing by length of data 
 cov = cov_temp / N
 
+## plotting covariance matrix ## 
 plt.figure()
 plt.imshow(cov)
 plt.title("1.1iii: Sensor Covariance Matrix")
+plt.colorbar()
 plt.show()
 ```
 
@@ -91,7 +90,7 @@ The sensors seem to pick up different signals for the most part, since the covar
 ```{python}
 mean_teslas = np.mean(data, axis = 0) #axis = 0 indicates the first dimension (repetitions)
 
-mean_teslas.shape
+mean_teslas.shape #checking whether we managed to collapse the first dimension
 ```
 
 ##### v. Plot the magnetic field (based on the average) as it evolves over time for each of the sensors (a line for each) (time on the x-axis and magnetic field on the y-axis). Add a horizontal line at $y = 0$ and a vertical line at $x = 0$ using `plt.axvline` and `plt.axhline`  
@@ -100,7 +99,7 @@ plt.figure()
 plt.plot(times, mean_teslas.T)
 plt.axvline(color = "black")
 plt.axhline(color = "black")
-plt.title("The Average of the Magnetic Field Across Repetitions")
+plt.title("Average Magnetic Field Across Repetitions")
 plt.xlabel("Time (ms)")
 plt.ylabel("Magnetic Field (Tesla)")
 plt.show()
@@ -112,7 +111,7 @@ plt.show()
 np.max(mean_teslas)
 
 # SENSOR WITH THE MAXIMAL MAGNETIC FIELD # 
-np.unravel_index(np.argmax(mean_teslas), mean_teslas.shape)
+np.unravel_index(np.argmax(mean_teslas), mean_teslas.shape) #first argument is the index of the maximal tesla value, the second argument is the dimensions of the array 
 
 times[112] # time in ms 
 ```
@@ -129,15 +128,12 @@ sensor73 = data[:,73,:]
 ## PLOTTING SENSOR 73 ##
 plt.figure()
 plt.plot(times, sensor73.T)
-plt.axvline(times[112], color = "black", linestyle = "--")
+plt.axvline(times[112], color = "black", linestyle = "--", label = "time at avg. maximal magnetic field")
+plt.legend(loc = "upper right")
 plt.axvline(color = "black")
 plt.axhline(color = "black")
 
-time_point_max = mpatches.Patch(color='black', label='time at avg maximal magnetic field', linestyle = "--")
-
-plt.legend(handles=[time_point_max])
-
-plt.title("Average Magnetic Field Across Repetitions")
+plt.title("Average Magnetic Field Across Repetitions for Sensor 73")
 plt.xlabel("Time (ms)")
 plt.ylabel("Magnetic Field (Tesla)")
 
@@ -633,18 +629,10 @@ Another surprise has been the accuracy of our models in general which are close 
 
 
 # EXERCISE 3 - Do a Support Vector Machine Classification on all four PAS-ratings  
-1) Do a Support Vector Machine Classification  
-    i. First equalize the number of targets using the function associated with each PAS-rating using the function associated with Exercise 3.1.i  
-    ii. Run two classifiers, one with a linear kernel and one with a radial basis (other options should be left at their defaults) - the number of features is the number of sensors multiplied the number of samples. Which one is better predicting the category?
-    iii. Run the sample-by-sample analysis (similar to Exercise 2.2.v) with the best kernel (from Exercise 3.1.ii). Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)
-    iv. Is classification of subjective experience possible at around 200-250 ms?  
-2) Finally, split the equalized data set (with all four ratings) into a training part and test part, where the test part if 30 % of the trials. Use `train_test_split` from `sklearn.model_selection`  
-    i. Use the kernel that resulted in the best classification in Exercise 3.1.ii and `fit`the training set and `predict` on the test set. This time your features are the number of sensors multiplied by the number of samples.  
-    ii. Create a _confusion matrix_. It is a 4x4 matrix. The row names and the column names are the PAS-scores. There will thus be 16 entries. The PAS1xPAS1 entry will be the number of actual PAS1, $y_{pas1}$ that were predicted as PAS1, $\hat y_{pas1}$. The PAS1xPAS2 entry will be the number of actual PAS1, $y_{pas1}$ that were predicted as PAS2, $\hat y_{pas2}$ and so on for the remaining 14 entries.  Plot the matrix
-    iii. Based on the confusion matrix, describe how ratings are misclassified and if that makes sense given that ratings should measure the strength/quality of the subjective experience. Is the classifier biased towards specific ratings?  
-    
-```{python, eval=FALSE}
-
+#### 1) Do a Support Vector Machine Classification  
+`
+##### i. First equalize the number of targets using the function associated with each PAS-rating using the function associated with Exercise 3.1.i  
+```{python, eval=TRUE}
 def equalize_targets(data, y):
     np.random.seed(7)
     targets = np.unique(y)
@@ -667,3 +655,61 @@ def equalize_targets(data, y):
     return new_data, new_y
 
 ```
+
+```{python}
+data_all_pas_eq, all_pas_y_eq = equalize_targets(data, y)
+```
+
+
+##### ii. Run two classifiers, one with a linear kernel and one with a radial basis (other options should be left at their defaults) - the number of features is the number of sensors multiplied the number of samples. Which one is better predicting the category?
+
+Firstly, we reshape and scale our data: 
+```{python}
+## Reshaping ##
+X_all_eq = data_all_pas_eq.reshape(data_all_pas_eq.shape[0],-1) 
+X_all_eq.shape
+
+## Scaling ##
+scaler = StandardScaler()
+X_all_eq_scaled = scaler.fit_transform(X_all_eq)
+X_all_eq_scaled.shape
+```
+
+
+```{python}
+from sklearn.svm import SVC
+
+## creating the classifier with a linear kernel ## 
+Lsvc = SVC(kernel = 'linear')
+
+## creating the classifier with a radial basis ## 
+Rsvc = SVC(kernel = 'rbf')
+```
+
+
+To compare the prediction accuracy of the two classifiers, we cross-validate them: 
+```{python}
+## defining cv again for good measure ## 
+cv = StratifiedKFold(n_splits=5)
+
+## cross validating the linear support vector ##
+Lsvc_scores = cross_val_score(Lsvc, X_all_eq_scaled, all_pas_y_eq, cv=cv)
+
+## cross validating the radial support vector ##
+Rsvc_scores = cross_val_score(Rsvc, X_all_eq_scaled, all_pas_y_eq, cv=cv)
+
+## printing the mean of the cross-validated performances ## 
+print("Lsvc Mean Cross Validated:", round(np.mean(Lsvc_scores), 3))
+print("Rsvc Mean Cross Validated:", round(np.mean(Rsvc_scores), 3))
+
+
+```
+
+
+#####iii. Run the sample-by-sample analysis (similar to Exercise 2.2.v) with the best kernel (from Exercise 3.1.ii). Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)
+    iv. Is classification of subjective experience possible at around 200-250 ms?  
+2) Finally, split the equalized data set (with all four ratings) into a training part and test part, where the test part if 30 % of the trials. Use `train_test_split` from `sklearn.model_selection`  
+    i. Use the kernel that resulted in the best classification in Exercise 3.1.ii and `fit`the training set and `predict` on the test set. This time your features are the number of sensors multiplied by the number of samples.  
+    ii. Create a _confusion matrix_. It is a 4x4 matrix. The row names and the column names are the PAS-scores. There will thus be 16 entries. The PAS1xPAS1 entry will be the number of actual PAS1, $y_{pas1}$ that were predicted as PAS1, $\hat y_{pas1}$. The PAS1xPAS2 entry will be the number of actual PAS1, $y_{pas1}$ that were predicted as PAS2, $\hat y_{pas2}$ and so on for the remaining 14 entries.  Plot the matrix
+    iii. Based on the confusion matrix, describe how ratings are misclassified and if that makes sense given that ratings should measure the strength/quality of the subjective experience. Is the classifier biased towards specific ratings?  
+    
