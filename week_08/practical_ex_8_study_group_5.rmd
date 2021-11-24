@@ -627,7 +627,9 @@ The classification accuracy between the PAS1-PAS2 and PAS1-PAS4 is quite similar
 
 ### 3) Is pairwise classification of subjective experience possible? Any surprises in the classification accuracies, i.e. how does the classification score fore PAS 1 vs 4 compare to the classification score for PAS 1 vs 2?  
 
+Theoretically, there should be a greater difference between PAS1 and PAS4 compared to the difference between PAS1 and PAS2 considering the meaning of these ratings as a great difference in experience. However, our pairwise comparisons in 2.2 give quite similar results.
 
+Another surprise has been the accuracy of our models in general which are close to chance level. 
 
 
 # EXERCISE 3 - Do a Support Vector Machine Classification on all four PAS-ratings  
