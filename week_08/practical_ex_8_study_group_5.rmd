@@ -80,7 +80,6 @@ cov = cov_temp / N
 
 plt.figure()
 plt.imshow(cov)
-plt.colorbar()
 plt.title("1.1iii: Sensor Covariance Matrix")
 plt.show()
 ```
@@ -232,9 +231,9 @@ Unexpectedly, pas2 has the highest peak which goes against the theoretical reaso
 
 # EXERCISE 2 - Do logistic regression to classify pairs of PAS-ratings  
 
-#### 1) Now, we are going to do Logistic Regression with the aim of classifying the PAS-rating given by the subject
+1) Now, we are going to do Logistic Regression with the aim of classifying the PAS-rating given by the subject
 
-##### i. We'll start with a binary problem - create a new array called `data_1_2` that only contains PAS responses 1 and 2. Similarly, create a `y_1_2` for the target vector 
+i. We'll start with a binary problem - create a new array called `data_1_2` that only contains PAS responses 1 and 2. Similarly, create a `y_1_2` for the target vector 
 ```{python}
 pas1_2 = np.where((y==1)|(y==2))
 data_1_2=data[pas1_2]
@@ -246,11 +245,21 @@ y_1_2 = y[(y==1)|(y==2)]
 y_1_2
 ```
 
-##### ii. Scikit-learn expects our observations (`data_1_2`) to be in a 2d-array, which has samples (repetitions) on dimension 1 and features (predictor variables) on dimension 2. Our `data_1_2` is a three-dimensional array. Our strategy will be to collapse our two last dimensions (sensors and time) into one dimension, while keeping the first dimension as it is (repetitions). Use `np.reshape` to create a variable `X_1_2` that fulfills these criteria. 
+ii. Scikit-learn expects our observations (`data_1_2`) to be in a 2d-array, which has samples (repetitions) on dimension 1 and features (predictor variables) on dimension 2. Our `data_1_2` is a three-dimensional array. Our strategy will be to collapse our two last dimensions (sensors and time) into one dimension, while keeping the first dimension as it is (repetitions). Use `np.reshape` to create a variable `X_1_2` that fulfils these criteria. 
 ```{python}
-X_1_2 = data_1_2.reshape(data_1_2.shape[0],-1)
+#Reshaping
+X_1_2 = data_1_2.reshape(data_1_2.shape[0],-1) 
+
+#data_1_2.shape[0] is repetitions with pas 1 or pas 2. This is the dimension we want to keep.
+# -1 collapses the second and third dimension. This is sensors and time. 
+#https://panjeh.medium.com/convert-numpy-3d-array-to-2d-array-in-python-931a4cdf8b12
+
 X_1_2.shape
 X_1_2
+```
+
+```{python}
+print(data_1_2)
 ```
 
 ##### iii. Import the `StandardScaler` and scale `X_1_2` 
@@ -258,10 +267,11 @@ X_1_2
 from sklearn.preprocessing import StandardScaler 
 scaler = StandardScaler()
 
+
 X_1_2_scaled = scaler.fit_transform(X_1_2)
 X_1_2_scaled.shape
-
 ```
+
 
 
 ##### iv. Do a standard `LogisticRegression` - can be imported from `sklearn.linear_model` - make sure there is no `penalty` applied  
@@ -275,11 +285,11 @@ lr.fit(X_1_2_scaled,y_1_2)
 ##### v. Use the `score` method of `LogisticRegression` to find out how many labels were classified correctly. Are we overfitting? Besides the score, what would make you suspect that we are overfitting?  
 ```{python}
 lr.score(X_1_2_scaled, y_1_2)
-
 ```
 If we interpret this correctly, our logistic regression correctly classifies 100 % of the labels, which makes us suspect that something is wrong. We believe we are overfitting, because the accuracy is very high. We have not split the data into test and training sets, so the model "knows" the correct classifications, as it has been trained on the very data it is asked to predict.
 
 ##### vi. Now apply the _L1_ penalty instead - how many of the coefficients (`.coef_`) are non-zero after this?  
+
 ```{python}
 lr = LogisticRegression(penalty='l1', solver ='liblinear', random_state=1)
 lr.fit(X_1_2_scaled,y_1_2)
@@ -310,38 +320,147 @@ reduced_X_cov.shape #hurra
 ###Plotting the covariance###
 plt.figure()
 plt.imshow(reduced_X_cov)
-plt.colorbar()
 plt.title("2.1vii: Non-Zero Coefficients Covariance Matrix")
+plt.colorbar()
 plt.show()
 
 #1.1iii
 plt.figure()
 plt.imshow(cov)
-plt.colorbar()
 plt.title("1.1iii: Sensor Covariance Matrix")
+plt.colorbar()
 plt.show()
 ```
+
+These plots are not easily comparable (0 correspond to a different shade across plots, and the scale is different). *ATTENCIONE* We will ask Lau about this. Our new plot is 'lighter' which could mean more covariance.
 
 
 #### 2) Now, we are going to build better (more predictive) models by using cross-validation as an outcome measure    
 
-##### i. Import `cross_val_score` and `StratifiedKFold` from `sklearn.model_selection`  
+
+#### i. Import `cross_val_score` and `StratifiedKFold` from `sklearn.model_selection`  
 ```{python}
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 ```
 
-  
+
 ##### ii. To make sure that our training data sets are not biased to one target (PAS) or the other, create `y_1_2_equal`, which should have an equal number of each target. Create a similar `X_1_2_equal`. The function `equalize_targets_binary` in the code chunk associated with Exercise 2.2.ii can be used. Remember to scale `X_1_2_equal`!  
-```{r}
+```{python}
+# Exercise 2.2.ii
+def equalize_targets_binary(data, y):
+    np.random.seed(7)
+    targets = np.unique(y) ## find the number of targets
+    if len(targets) > 2:
+        raise NameError("can't have more than two targets")
+    counts = list()
+    indices = list()
+    for target in targets:
+        counts.append(np.sum(y == target)) ## find the number of each target
+        indices.append(np.where(y == target)[0]) ## find their indices
+    min_count = np.min(counts)
+    # randomly choose trials
+    first_choice = np.random.choice(indices[0], size=min_count, replace=False)
+    second_choice = np.random.choice(indices[1], size=min_count,replace=False)
+    
+    # create the new data sets
+    new_indices = np.concatenate((first_choice, second_choice))
+    new_y = y[new_indices]
+    new_data = data[new_indices, :, :]
+    
+    return new_data, new_y
+```
+
+```{python}
+## USING THE FUNCTION ##
+data_1_2_equal, y_1_2_equal = equalize_targets_binary(data_1_2, y_1_2)
+
+### investigating y_1_2_equal ###
+y_1_2_equal.shape
+np.where(y_1_2_equal == 1)
+np.where(y_1_2_equal == 2) 
+# we see that there are 99 of each
+
+### investigating data_1_2_equal ###
+data_1_2_equal.shape
+
+# Reshaping
+X_1_2_equal = data_1_2_equal.reshape(X_1_2_equal.shape[0],-1) 
+X_1_2_equal.shape
+
+# Scaling
+scaler = StandardScaler()
+X_1_2_equal_scaled = scaler.fit_transform(X_1_2_equal)
+X_1_2_equal_scaled.shape
+```
+
+By running X_1_2 equal_scaled.shape, we see that we have now 198 pas ratings (corresponding to 99 pas1 and 99 pas2 ratings) and the 25602 coefficients. 
+
+##### iii. Do cross-validation with 5 stratified folds doing standard `LogisticRegression` (See Exercise 2.1.iv)  
+```{python}
+## fitting the model ##
+log = LogisticRegression(penalty='none')
+
+log.fit(X_1_2_equal_scaled, y_1_2_equal)
+
+## cross validation ## 
+cv = StratifiedKFold(n_splits=5) #defining that we want 5 folds 
+
+scores_log = cross_val_score(log, X_1_2_equal_scaled, y_1_2_equal, cv=cv)
+print(np.mean(scores_log))
+```
+
+Our model is barely above chance level (0.535) when you take the mean of the prediction accuracy from the 5 cv fits. 
+
+##### iv. Do L2-regularisation with the following `Cs=  [1e5, 1e1, 1e-5]`. Use the same kind of cross-validation as in Exercise 2.2.iii. In the best-scoring of these models, how many more/fewer predictions are correct (on average)? 
+
+```{python}
+#Log 1e5 
+log_1e5 = LogisticRegression(penalty='l2', C=1e5)
+log_1e5.fit(X_1_2_equal_scaled, y_1_2_equal)
+
+scores_log_1e5 = cross_val_score(log_1e5, X_1_2_equal_scaled, y_1_2_equal, cv=cv)
+
+#Log 1e1
+log_1e1 = LogisticRegression(penalty='l2', C=1e1)
+log_1e1.fit(X_1_2_equal_scaled, y_1_2_equal)
+
+scores_log_1e1 = cross_val_score(log_1e1, X_1_2_equal_scaled, y_1_2_equal, cv=cv)
+
+#Log 1e-5
+log_1e_neg5 = LogisticRegression(penalty='l2', C=1e-5) 
+
+log_1e_neg5.fit(X_1_2_equal_scaled, y_1_2_equal)
+
+scores_log_1e_neg5 = cross_val_score(log_1e_neg5, X_1_2_equal_scaled, y_1_2_equal, cv=cv)
+
+from sklearn.model_selection import cross_val_predict
+
+predict_log1e_neg5 = cross_val_predict(log_1e_neg5, X_1_2_equal_scaled, y_1_2_equal, cv=cv)
+
+
+## Cross-validation Score ## 
+print(np.mean(scores_log_1e5))
+print(np.mean(scores_log_1e1))
+print(np.mean(scores_log_1e_neg5))
+
 
 ```
 
+The model with the lowest C has the highest accuracy (0.596) meaning that introducing penalty improves prediction accuracy.  
 
-    iii. Do cross-validation with 5 stratified folds doing standard `LogisticRegression` (See Exercise 2.1.iv)  
-    iv. Do L2-regularisation with the following `Cs=  [1e5, 1e1, 1e-5]`. Use the same kind of cross-validation as in Exercise 2.2.iii. In the best-scoring of these models, how many more/fewer predictions are correct (on average)?  
-    v. Instead of fitting a model on all `n_sensors * n_samples` features, fit  a logistic regression (same kind as in Exercise 2.2.iv (use the `C` that resulted in the best prediction)) for __each__ time sample and use the same cross-validation as in Exercise 2.2.iii. What are the time points where classification is best? Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)  
-    vi. Now do the same, but with L1 regression - set `C=1e-1` - what are the time points when classification is best? (make a plot)?  
-    vii. Finally, fit the same models as in Exercise 2.2.vi but now for `data_1_4` and `y_1_4` (create a data set and a target vector that only contains PAS responses 1 and 4). What are the time points when classification is best? Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)  
+##### v. Instead of fitting a model on all `n_sensors * n_samples` features, fit  a logistic regression (same kind as in Exercise 2.2.iv (use the `C` that resulted in the best prediction)) for __each__ time sample and use the same cross-validation as in Exercise 2.2.iii. What are the time points where classification is best? Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)  
+```{python}
+
+```
+
+    
+##### vi. Now do the same, but with L1 regression - set `C=1e-1` - what are the time points when classification is best? (make a plot)?  
+
+
+vii. Finally, fit the same models as in Exercise 2.2.vi but now for `data_1_4` and `y_1_4` (create a data set and a target vector that only contains PAS responses 1 and 4). What are the time points when classification is best? Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)  
+
+
+
 3) Is pairwise classification of subjective experience possible? Any surprises in the classification accuracies, i.e. how does the classification score fore PAS 1 vs 4 compare to the classification score for PAS 1 vs 2?  
 
 
