@@ -701,15 +701,90 @@ Rsvc_scores = cross_val_score(Rsvc, X_all_eq_scaled, all_pas_y_eq, cv=cv)
 ## printing the mean of the cross-validated performances ## 
 print("Lsvc Mean Cross Validated:", round(np.mean(Lsvc_scores), 3))
 print("Rsvc Mean Cross Validated:", round(np.mean(Rsvc_scores), 3))
+```
+
+The mean accuracy is higher for our support vector machine with a radial basis kernel (0.333) although both accuracies are quite low (just above chance level). 
+
+#####iii. Run the sample-by-sample analysis (similar to Exercise 2.2.v) with the best kernel (from Exercise 3.1.ii). Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)
+```{python}
+## empty list for the cross scores ##
+cross_scores_Rsvc = []
+
+## defining cv again for good measure ## 
+cv = StratifiedKFold(n_splits=5)
+
+## for loop ## 
+for i in range(251):
+  #Creating data and scaling 
+  scaler = StandardScaler()
+  X_time = data_all_pas_eq[:,:,i]
+  X_time_scaled = scaler.fit_transform(X_time)
+  
+  #Instantiating a support vector machine with a radial basis
+  Rsvc = SVC(kernel = 'rbf')
+  
+  #Cross-validating 
+  score = cross_val_score(Rsvc, X_time_scaled, all_pas_y_eq, cv = cv)
+  
+  #taking the mean 
+  mean = np.mean(score)
+  
+  #appending the mean
+  cross_scores_Rsvc.append(mean)
+```
+
+```{python}
+#Finding the time point where classification is best 
+indexRsvc = cross_scores_Rsvc.index(max(cross_scores_Rsvc))
+times[indexRsvc]
+
+plt.figure()
+plt.axvline(x = times[indexRsvc], color = "black", alpha = 0.7)  
+plt.axhline(y = 0.25, color = "black") #horisontal line at chance level 
+plt.plot(times, cross_scores_Rsvc)
+plt.title("SVC with Radial Basis: Classification Accuracy vs. Time")
+plt.xlabel("Time (ms)")
+plt.ylabel("Accuracy")
+plt.show()
+```
+
+Since it is a multinomial classification with 4 categories, the chance level is 25 %. 
+
+##### iv. Is classification of subjective experience possible at around 200-250 ms?  
+Looking at the plot visually, we note that classification of PAS ratings at around 200-250 is above chance level. 
+
+We can also calculate the accuracy in the this range which also shows that the classification of subjective experience is above chance level at 200-250ms:
+```{python}
+## Finding the indices at the upper and lower bounds of the range 200-250 ms ##
+lower = np.where(times == 200)[0][0]
+upper = np.where(times == 248)[0][0]
+#note that the upper boiund is 248 to make it possible to divide by 4ms 
+
+## Mean accuracy in the range ##
+print("Mean Accuracy Radial Basis in range 200-250 ms:", round(np.mean(cross_scores_Rsvc[lower:upper]),3))
+```
+
+
+#### 2) Finally, split the equalized data set (with all four ratings) into a training part and test part, where the test part if 30 % of the trials. Use `train_test_split` from `sklearn.model_selection`
+```{python}
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(X_all_eq_scaled, all_pas_y_eq, test_size=0.30, random_state=42) #we save to four different variables, the random_state ensures that it randomly sorts the dataset into train and test 
+```
+
+
+##### i. Use the kernel that resulted in the best classification in Exercise 3.1.ii and `fit`the training set and `predict` on the test set. This time your features are the number of sensors multiplied by the number of samples. 
+```{python}
+##  
+Rsvc = SVC(kernel = 'rbf')
+
 
 
 ```
 
 
-#####iii. Run the sample-by-sample analysis (similar to Exercise 2.2.v) with the best kernel (from Exercise 3.1.ii). Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)
-    iv. Is classification of subjective experience possible at around 200-250 ms?  
-2) Finally, split the equalized data set (with all four ratings) into a training part and test part, where the test part if 30 % of the trials. Use `train_test_split` from `sklearn.model_selection`  
-    i. Use the kernel that resulted in the best classification in Exercise 3.1.ii and `fit`the training set and `predict` on the test set. This time your features are the number of sensors multiplied by the number of samples.  
-    ii. Create a _confusion matrix_. It is a 4x4 matrix. The row names and the column names are the PAS-scores. There will thus be 16 entries. The PAS1xPAS1 entry will be the number of actual PAS1, $y_{pas1}$ that were predicted as PAS1, $\hat y_{pas1}$. The PAS1xPAS2 entry will be the number of actual PAS1, $y_{pas1}$ that were predicted as PAS2, $\hat y_{pas2}$ and so on for the remaining 14 entries.  Plot the matrix
-    iii. Based on the confusion matrix, describe how ratings are misclassified and if that makes sense given that ratings should measure the strength/quality of the subjective experience. Is the classifier biased towards specific ratings?  
+
+##### ii. Create a _confusion matrix_. It is a 4x4 matrix. The row names and the column names are the PAS-scores. There will thus be 16 entries. The PAS1xPAS1 entry will be the number of actual PAS1, $y_{pas1}$ that were predicted as PAS1, $\hat y_{pas1}$. The PAS1xPAS2 entry will be the number of actual PAS1, $y_{pas1}$ that were predicted as PAS2, $\hat y_{pas2}$ and so on for the remaining 14 entries.  Plot the matrix
+
+##### iii. Based on the confusion matrix, describe how ratings are misclassified and if that makes sense given that ratings should measure the strength/quality of the subjective experience. Is the classifier biased towards specific ratings?  
     
