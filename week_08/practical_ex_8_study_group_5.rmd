@@ -235,7 +235,7 @@ Unexpectedly, pas2 has the highest peak which goes against the theoretical reaso
 
 ##### i. We'll start with a binary problem - create a new array called `data_1_2` that only contains PAS responses 1 and 2. Similarly, create a `y_1_2` for the target vector 
 ```{python}
-pas1_2 = np.where((y==1)|(y==2))
+pas1_2= np.where((y==1)|(y==2))
 data_1_2=data[pas1_2]
 
 data_1_2.shape #checking that we did it right
@@ -245,7 +245,7 @@ y_1_2 = y[(y==1)|(y==2)]
 y_1_2
 ```
 
-ii. Scikit-learn expects our observations (`data_1_2`) to be in a 2d-array, which has samples (repetitions) on dimension 1 and features (predictor variables) on dimension 2. Our `data_1_2` is a three-dimensional array. Our strategy will be to collapse our two last dimensions (sensors and time) into one dimension, while keeping the first dimension as it is (repetitions). Use `np.reshape` to create a variable `X_1_2` that fulfils these criteria. 
+##### ii. Scikit-learn expects our observations (`data_1_2`) to be in a 2d-array, which has samples (repetitions) on dimension 1 and features (predictor variables) on dimension 2. Our `data_1_2` is a three-dimensional array. Our strategy will be to collapse our two last dimensions (sensors and time) into one dimension, while keeping the first dimension as it is (repetitions). Use `np.reshape` to create a variable `X_1_2` that fulfils these criteria. 
 ```{python}
 #Reshaping
 X_1_2 = data_1_2.reshape(data_1_2.shape[0],-1) 
@@ -384,7 +384,7 @@ np.where(y_1_2_equal == 2)
 data_1_2_equal.shape
 
 # Reshaping
-X_1_2_equal = data_1_2_equal.reshape(X_1_2_equal.shape[0],-1) 
+X_1_2_equal = data_1_2_equal.reshape(data_1_2_equal.shape[0],-1) 
 X_1_2_equal.shape
 
 # Scaling
@@ -474,7 +474,7 @@ cross_scores = []
 cv = StratifiedKFold(n_splits=5)
 
 ## for loop ## 
-for i in range(len(data_1_2_equal[0,0,:])):
+for i in range(251):
   #Creating data and scaling 
   scaler = StandardScaler()
   X_time = data_1_2_equal[:,:,i]
@@ -484,53 +484,151 @@ for i in range(len(data_1_2_equal[0,0,:])):
   lr = LogisticRegression(penalty='l2', C=1e-5)
   
   #Cross-validating 
-  score = cross_val_score(lr, X_time, y_1_2_equal, cv = cv)
+  score = cross_val_score(lr, X_time_scaled, y_1_2_equal, cv = cv)
   
   #taking the mean 
   mean = np.mean(score)
   
   #appending the mean
   cross_scores.append(mean)
-  
-
-
 ```
 
+```{python}
+#Finding the time point where classification is best 
+indexmax = cross_scores.index(max(cross_scores))
+times[indexmax]
+
+plt.figure()
+plt.axvline(x = times[indexmax], color = "black", alpha = 0.5)  
+plt.plot(times, cross_scores)
+plt.axhline(y = 0.50, color = "black")
+plt.title("L2 Regularisation: Classification Accuracy vs. Time")
+plt.xlabel("Time (ms)")
+plt.ylabel("Accuracy")
+plt.show()
+```
+
+The classification is not much better than chance level (50 % since it is a binary classification: it can only classify as PAS1 or PAS2)
     
 ##### vi. Now do the same, but with L1 regression - set `C=1e-1` - what are the time points when classification is best? (make a plot)?  
+```{python}
+## empty list for the cross scores ##
+cross_scores_l1 = []
 
+## defining cv again for good measure ## 
+cv = StratifiedKFold(n_splits=5)
 
-vii. Finally, fit the same models as in Exercise 2.2.vi but now for `data_1_4` and `y_1_4` (create a data set and a target vector that only contains PAS responses 1 and 4). What are the time points when classification is best? Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)  
-
-
-
-3) Is pairwise classification of subjective experience possible? Any surprises in the classification accuracies, i.e. how does the classification score fore PAS 1 vs 4 compare to the classification score for PAS 1 vs 2?  
-
-
-```{python, eval=FALSE}
-# Exercise 2.2.ii
-def equalize_targets_binary(data, y):
-    np.random.seed(7)
-    targets = np.unique(y) ## find the number of targets
-    if len(targets) > 2:
-        raise NameError("can't have more than two targets")
-    counts = list()
-    indices = list()
-    for target in targets:
-        counts.append(np.sum(y == target)) ## find the number of each target
-        indices.append(np.where(y == target)[0]) ## find their indices
-    min_count = np.min(counts)
-    # randomly choose trials
-    first_choice = np.random.choice(indices[0], size=min_count, replace=False)
-    second_choice = np.random.choice(indices[1], size=min_count,replace=False)
-    
-    # create the new data sets
-    new_indices = np.concatenate((first_choice, second_choice))
-    new_y = y[new_indices]
-    new_data = data[new_indices, :, :]
-    
-    return new_data, new_y
+## for loop ## 
+for i in range(251):
+  #Creating data and scaling 
+  scaler = StandardScaler()
+  X_time = data_1_2_equal[:,:,i]
+  X_time_scaled = scaler.fit_transform(X_time)
+  
+  #Creating a logistic regression object
+  lr = LogisticRegression(penalty='l1', solver = "liblinear", C=1e-1)
+  
+  #Cross-validating 
+  score = cross_val_score(lr, X_time_scaled, y_1_2_equal, cv = cv)
+  
+  #taking the mean 
+  mean = np.mean(score)
+  
+  #appending the mean
+  cross_scores_l1.append(mean)
 ```
+
+```{python}
+#Finding the time point where classification is best 
+indexmax_l1 = cross_scores_l1.index(max(cross_scores_l1))
+times[indexmax_l1]
+
+plt.figure()
+plt.axvline(x = times[indexmax_l1], color = "black", alpha = 0.5)  
+plt.plot(times, cross_scores_l1)
+plt.axhline(y = 0.50, color = "black")
+plt.title("L1 PAS 1 & 2: Classification Accuracy vs. Time")
+plt.xlabel("Time (ms)")
+plt.ylabel("Accuracy")
+plt.show()
+```
+
+
+##### vii. Finally, fit the same models as in Exercise 2.2.vi but now for `data_1_4` and `y_1_4` (create a data set and a target vector that only contains PAS responses 1 and 4). What are the time points when classification is best? Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)  
+
+Firstly, we will create a target vector with pas 1 and 4 similar to the one we made in exercise 2.1i
+```{python}
+pas1_4 = np.where((y==1)|(y==4))
+data_1_4 = data[pas1_4]
+
+data_1_4.shape #checking that we did it right
+
+## creating the target vector ##
+y_1_4 = y[(y==1)|(y==4)] 
+```
+
+Now we equalize the data:
+```{python}
+## using the function from 2.2ii ##
+data_1_4_equal, y_1_4_equal = equalize_targets_binary(data_1_4, y_1_4)
+```
+
+Finally, we cross-validate for each time stamp:
+```{python}
+## empty list for the cross scores ##
+cross_scores_pas1_4 = []
+
+## defining cv again for good measure ## 
+cv = StratifiedKFold(n_splits=5)
+
+## for loop ## 
+for i in range(251):
+  #Creating data and scaling 
+  scaler = StandardScaler()
+  X_time = data_1_4_equal[:,:,i]
+  X_time_scaled = scaler.fit_transform(X_time)
+  
+  #Creating a logistic regression object
+  lr = LogisticRegression(penalty='l1', solver = "liblinear", C=1e-1)
+  
+  #Cross-validating 
+  score = cross_val_score(lr, X_time_scaled, y_1_4_equal, cv = cv)
+  
+  #taking the mean 
+  mean = np.mean(score)
+  
+  #appending the mean
+  cross_scores_pas1_4.append(mean)
+```
+
+```{python}
+#Finding the time point where classification is best 
+indexmax_pas_1_4 = cross_scores_pas1_4.index(max(cross_scores_pas1_4))
+times[indexmax_pas_1_4]
+
+plt.figure()
+plt.axvline(x = times[indexmax_pas_1_4], color = "black", alpha = 0.5)  
+plt.plot(times, cross_scores_pas1_4)
+plt.axhline(y = 0.50, color = "black")
+plt.title("L1 PAS 1 & 4: Classification Accuracy vs. Time")
+plt.xlabel("Time (ms)")
+plt.ylabel("Accuracy")
+plt.show()
+```
+
+To compare between the L1 PAS 1 & 2 classification accuracy and L1 PAS 1 & 4 accuracy, we take the mean of the means:
+```{python}
+print("Cross-Validation PAS1-PAS2 mean of means:", round(np.mean(cross_scores_l1), 3))
+
+print("Cross-Validation PAS1-PAS4 mean of means:", round(np.mean(cross_scores_pas1_4), 3))
+```
+
+The classification accuracy between the PAS1-PAS2 and PAS1-PAS4 is quite similar. Both are not much better than chance level (50 % since it is a binary classification but this time between PAS1 and PAS4). This is also apparent visually. 
+
+### 3) Is pairwise classification of subjective experience possible? Any surprises in the classification accuracies, i.e. how does the classification score fore PAS 1 vs 4 compare to the classification score for PAS 1 vs 2?  
+
+
+
 
 # EXERCISE 3 - Do a Support Vector Machine Classification on all four PAS-ratings  
 1) Do a Support Vector Machine Classification  
