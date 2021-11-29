@@ -288,31 +288,33 @@ np.count_nonzero(lr.coef_)
 ```
 
 ##### vii. Create a new reduced $X$ that only includes the non-zero coefficients - show the covariance of the non-zero features (two covariance matrices can be made; $X_{reduced}X_{reduced}^T$ or $X_{reduced}^TX_{reduced}$ (you choose the right one)) . Plot the covariance of the features using `plt.imshow`. Compared to the plot from 1.1.iii, do we see less covariance? 
-```{python}
-###REDUCED X###
-non_zero = np.where(lr.coef_ != 0)
-print(non_zero) # We only need the information in the second column
-print(non_zero[1])
 
-reduced_X = X_1_2_scaled[:,non_zero[1]] # Taking the previous X_1_2_scaled and subsetting the non-zero coefficients
+Firstly, we subset reduced X to only include non-zero coefficients:
+```{python}
+## REDUCED X ##
+non_zero = np.where(lr.coef_ != 0)
+
+## TAKING the previous X_1_2_scaled and subsetting the non-zero coefficients
+reduced_X = X_1_2_scaled[:,non_zero[1]]
 
 reduced_X.shape
+```
 
-###COVARIANCE OF NON-ZERO FEATURES###
+Now we make the matrix. We would like to end up with a 282 by 282 matrix. When we multiply two matrices, we get the first matrix' rows and the second matrix' columns. We choose the formula where the rows of the transposed matrix (282) is multiplied with the columns of the matrix (282): $X_{reduced}^T X_{reduced}$ or $features \times features$. 
 
-#We would like to end up with a 282 by 282 matrix. When we multiply two matrices, we get the first matrix' rows and the second matrix' columns. We choose the formula, where the rows of the transposed matrix (282) is multiplied with the columns of the matrix (282) - features x features
-
+```{python}
+## COVARIANCE of Non-zero Features ##
 reduced_X_cov = reduced_X.T@reduced_X
-reduced_X_cov.shape #hurra
+reduced_X_cov.shape
 
-###Plotting the covariance###
+## PLOTTING the covariance plot ##
 plt.figure()
 plt.imshow(reduced_X_cov)
 plt.title("2.1vii: Non-Zero Coefficients Covariance Matrix")
 plt.colorbar()
 plt.show()
 
-#1.1iii
+## PLOTTING 1.1iii ##
 plt.figure()
 plt.imshow(cov)
 plt.title("1.1iii: Sensor Covariance Matrix")
@@ -320,7 +322,8 @@ plt.colorbar()
 plt.show()
 ```
 
-These plots are not easily comparable (0 correspond to a different shade across plots, and the scale is different). *ATTENCIONE* We will ask Lau about this. Our new plot is 'lighter' which could mean more covariance.
+
+Compared to the plot from 1.1iii, we see more covariance (relative to the plot). We suspect that this is due to isolating the features with higher tesla values. When the tesla values are higher, this indicates a signal and the differences in pas-ratings will be more distinguishable. These are thus more likely to result in non-zero coefficients in a penalised regression. 
 
 
 #### 2) Now, we are going to build better (more predictive) models by using cross-validation as an outcome measure    
@@ -359,42 +362,40 @@ def equalize_targets_binary(data, y):
 ```
 
 ```{python}
-## USING THE FUNCTION ##
+## USING the function ##
 data_1_2_equal, y_1_2_equal = equalize_targets_binary(data_1_2, y_1_2)
 
-### investigating y_1_2_equal ###
+## INVESTIGATING y_1_2_equal & data_1_2_equal ##
 y_1_2_equal.shape
-np.where(y_1_2_equal == 1)
-np.where(y_1_2_equal == 2) 
-# we see that there are 99 of each
 
-### investigating data_1_2_equal ###
 data_1_2_equal.shape
 
-# Reshaping
+## RESHAPING ## 
 X_1_2_equal = data_1_2_equal.reshape(data_1_2_equal.shape[0],-1) 
 X_1_2_equal.shape
 
-# Scaling
+## SCALING ##
 scaler = StandardScaler()
 X_1_2_equal_scaled = scaler.fit_transform(X_1_2_equal)
+
+## CHECKING that we did it right ## 
 X_1_2_equal_scaled.shape
 ```
 
-By running X_1_2 equal_scaled.shape, we see that we have now 198 pas ratings (corresponding to 99 pas1 and 99 pas2 ratings) and the 25602 coefficients. 
+By running X_1_2_equal_scaled.shape, we see that we have now 198 pas ratings (corresponding to 99 *pas1* and 99 *pas2* ratings) and the 25602 coefficients. 
 
 ##### iii. Do cross-validation with 5 stratified folds doing standard `LogisticRegression` (See Exercise 2.1.iv)  
 ```{python}
-## fitting the model ##
+## FITTING the model ##
 log = LogisticRegression(penalty='none')
 
 log.fit(X_1_2_equal_scaled, y_1_2_equal)
 
-## cross validation ## 
+## CROSS-VALIDATION ## 
 cv = StratifiedKFold(n_splits=5) #defining that we want 5 folds 
 
 scores_log = cross_val_score(log, X_1_2_equal_scaled, y_1_2_equal, cv=cv)
-print(np.mean(scores_log))
+print("Cross-Validation Score (no penality):", round(np.mean(scores_log), 3))
 ```
 
 Our model is barely above chance level (0.535) when you take the mean of the prediction accuracy from the 5 cv fits. 
@@ -402,23 +403,20 @@ Our model is barely above chance level (0.535) when you take the mean of the pre
 ##### iv. Do L2-regularisation with the following `Cs=  [1e5, 1e1, 1e-5]`. Use the same kind of cross-validation as in Exercise 2.2.iii. In the best-scoring of these models, how many more/fewer predictions are correct (on average)? 
 
 ```{python}
-## L2-Regularisation & Cross-Validation Calculations ## 
-
-#Log 1e5 
+#LOG 1e5 
 log_1e5 = LogisticRegression(penalty='l2', C=1e5)
 log_1e5.fit(X_1_2_equal_scaled, y_1_2_equal)
 
 scores_log_1e5 = cross_val_score(log_1e5, X_1_2_equal_scaled, y_1_2_equal, cv=cv)
 
-#Log 1e1
+#LOG 1e1
 log_1e1 = LogisticRegression(penalty='l2', C=1e1)
 log_1e1.fit(X_1_2_equal_scaled, y_1_2_equal)
 
 scores_log_1e1 = cross_val_score(log_1e1, X_1_2_equal_scaled, y_1_2_equal, cv=cv)
 
-#Log 1e-5
+#LOG 1e-5
 log_1e_neg5 = LogisticRegression(penalty='l2', C=1e-5) 
-
 log_1e_neg5.fit(X_1_2_equal_scaled, y_1_2_equal)
 
 scores_log_1e_neg5 = cross_val_score(log_1e_neg5, X_1_2_equal_scaled, y_1_2_equal, cv=cv)
@@ -426,42 +424,43 @@ scores_log_1e_neg5 = cross_val_score(log_1e_neg5, X_1_2_equal_scaled, y_1_2_equa
 
 
 ```{python}
-## Cross-validation Score ## 
+## CROSS-VALIDATION Score ## 
 print("Cross-Validation Score w. C = 1e5:", np.mean(scores_log_1e5).round(3))
 print("Cross-Validation Score w. C = 1e1:", np.mean(scores_log_1e1).round(3))
 print("Cross-Validation Score w. C = 1e-5:", np.mean(scores_log_1e_neg5).round(3))
 ```
 
-The model with the lowest C ($C = 1e-5$) has the highest accuracy (0.596) meaning that introducing penalty improves prediction accuracy. We can count the amount of predictions that are correct and compare with the model with no penalty made in iii:
+The model with the lowest C ($C = 1e-5$) has the highest accuracy (0.596) meaning that introducing penalty/bias improves prediction accuracy. We can count the amount of predictions that are correct and compare with the model with no penalty made in 2.2iii (this model only had an accuracy of 0.535). 
 
 ```{python}
-## Amount of predictions correct ## 
 from sklearn.model_selection import cross_val_predict
 
-## Accuracy Log 1e-5
+## ACCURACY Log 1e-5 (best scoring) ##
 predict_log1e_neg5 = cross_val_predict(log_1e_neg5, X_1_2_equal_scaled, y_1_2_equal, cv=cv)
-accuracy_log1e_neg5 = predict_log1e_neg5 == y_1_2_equal
 
-## Accuracy Log Model 2.2iii
+accuracy_log1e_neg5 = predict_log1e_neg5 == y_1_2_equal # list of all true & false classifications 
+
+## ACCURACY Log Model 2.2iii ##
 predict_log = cross_val_predict(log, X_1_2_equal_scaled, y_1_2_equal, cv=cv)
+
 accuracy_log = predict_log == y_1_2_equal
 
+## COUNTING correct predictions ## 
 print("Correct Predictions Log 2.2iii:", len(np.where(accuracy_log == True)[0]))
 print("Correct Predictions Log 1e-5:", len(np.where(accuracy_log1e_neg5 == True)[0]))
 ```
 
-The amount of predictions that are correct with the penalized model (log 1e-5) are 118 whereas the non-penalised model only has 106. 
+The amount of predictions that are correct with the penalized model (log 1e-5) are 118 whereas the non-penalised model (from 2.2iii) only has 106. 
 
 ##### v. Instead of fitting a model on all `n_sensors * n_samples` features, fit  a logistic regression (same kind as in Exercise 2.2.iv (use the `C` that resulted in the best prediction)) for __each__ time sample and use the same cross-validation as in Exercise 2.2.iii. What are the time points where classification is best? Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)  
 
 ```{python}
-## empty list for the cross scores ##
+## EMPTY list for the cross scores ##
 cross_scores = []
 
-## defining cv again for good measure ## 
+## DEFINING cv again for good measure ## 
 cv = StratifiedKFold(n_splits=5)
 
-## for loop ## 
 for i in range(251):
   #Creating data and scaling 
   scaler = StandardScaler()
@@ -479,10 +478,11 @@ for i in range(251):
   
   #appending the mean
   cross_scores.append(mean)
+  
 ```
 
 ```{python}
-#Finding the time point where classification is best 
+## FINDING the time point where classification is best ##
 indexmax = cross_scores.index(max(cross_scores))
 times[indexmax]
 
@@ -490,23 +490,23 @@ plt.figure()
 plt.axvline(x = times[indexmax], color = "black", alpha = 0.5)  
 plt.plot(times, cross_scores)
 plt.axhline(y = 0.50, color = "black")
-plt.title("L2 Regularisation: Classification Accuracy vs. Time")
+plt.title("L2 PAS 1 & 2: Classification Accuracy vs. Time")
 plt.xlabel("Time (ms)")
 plt.ylabel("Accuracy")
 plt.show()
 ```
 
-The classification is not much better than chance level (50 % since it is a binary classification: it can only classify as PAS1 or PAS2)
-    
+The chance level for this analysis is 50% since it is a binary classification where it can only classify pas-ratings as $pas1$ or $pas2$. Hence, the classification is not much better than chance level. 
+
 ##### vi. Now do the same, but with L1 regression - set `C=1e-1` - what are the time points when classification is best? (make a plot)?  
+
 ```{python}
-## empty list for the cross scores ##
+## EMPTY list for the cross scores ##
 cross_scores_l1 = []
 
-## defining cv again for good measure ## 
+## DEFINING cv again for good measure ## 
 cv = StratifiedKFold(n_splits=5)
 
-## for loop ## 
 for i in range(251):
   #Creating data and scaling 
   scaler = StandardScaler()
@@ -524,10 +524,11 @@ for i in range(251):
   
   #appending the mean
   cross_scores_l1.append(mean)
+  
 ```
 
 ```{python}
-#Finding the time point where classification is best 
+## FINDING the time point where classification is best ##
 indexmax_l1 = cross_scores_l1.index(max(cross_scores_l1))
 times[indexmax_l1]
 
@@ -541,35 +542,33 @@ plt.ylabel("Accuracy")
 plt.show()
 ```
 
+For both the L1 and L2 plot, the time point where classification is best is around 230-40 ms. 
 
-##### vii. Finally, fit the same models as in Exercise 2.2.vi but now for `data_1_4` and `y_1_4` (create a data set and a target vector that only contains PAS responses 1 and 4). What are the time points when classification is best? Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)  
+##### vii. Finally, fit the same models as in Exercise 2.2.vi but now for `data_1_4` and `y_1_4` (create a data set and a target vector that only contains PAS responses 1 and 4). What are the time points when classification is best? Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)
 
-Firstly, we will create a target vector with pas 1 and 4 similar to the one we made in exercise 2.1i
+Firstly, we will create a target vector with *pas1* and *pas4* similar to the one we made in exercise 2.1i
 ```{python}
 pas1_4 = np.where((y==1)|(y==4))
 data_1_4 = data[pas1_4]
 
-data_1_4.shape #checking that we did it right
-
-## creating the target vector ##
+## CREATING the target vector ##
 y_1_4 = y[(y==1)|(y==4)] 
 ```
 
 Now we equalize the data:
 ```{python}
-## using the function from 2.2ii ##
+## USING the function from 2.2ii ##
 data_1_4_equal, y_1_4_equal = equalize_targets_binary(data_1_4, y_1_4)
 ```
 
 Finally, we cross-validate for each time stamp:
 ```{python}
-## empty list for the cross scores ##
+## EMPTY list for the cross scores ##
 cross_scores_pas1_4 = []
 
-## defining cv again for good measure ## 
+## DEFINING cv again for good measure ## 
 cv = StratifiedKFold(n_splits=5)
 
-## for loop ## 
 for i in range(251):
   #Creating data and scaling 
   scaler = StandardScaler()
@@ -587,10 +586,11 @@ for i in range(251):
   
   #appending the mean
   cross_scores_pas1_4.append(mean)
+  
 ```
 
 ```{python}
-#Finding the time point where classification is best 
+## FINDING the time point where classification is best ##
 indexmax_pas_1_4 = cross_scores_pas1_4.index(max(cross_scores_pas1_4))
 times[indexmax_pas_1_4]
 
@@ -604,18 +604,13 @@ plt.ylabel("Accuracy")
 plt.show()
 ```
 
-To compare between the L1 PAS 1 & 2 classification accuracy and L1 PAS 1 & 4 accuracy, we take the mean of the means:
-```{python}
-print("Cross-Validation PAS1-PAS2 mean of means:", round(np.mean(cross_scores_l1), 3))
+The chance level for this analysis is again 50% as it is once again a binary classification.
 
-print("Cross-Validation PAS1-PAS4 mean of means:", round(np.mean(cross_scores_pas1_4), 3))
-```
-
-The classification accuracy between the PAS1-PAS2 and PAS1-PAS4 is quite similar. Both are not much better than chance level (50 % since it is a binary classification but this time between PAS1 and PAS4). This is also apparent visually. 
+The time point where the classification is the best is 236ms for the L1 PAS1 & PAS4 logistic regression which is quite close to the previous models. 
 
 ### 3) Is pairwise classification of subjective experience possible? Any surprises in the classification accuracies, i.e. how does the classification score fore PAS 1 vs 4 compare to the classification score for PAS 1 vs 2?  
 
-Theoretically, there should be a greater difference between PAS1 and PAS4 compared to the difference between PAS1 and PAS2 considering the meaning of these ratings as a great difference in experience. However, our pairwise comparisons in 2.2 give quite similar results.
+Theoretically, there should be a greater difference between PAS1 and PAS4 compared to the difference between PAS1 and PAS2 considering the meaning of these ratings as a great difference in experience. However, our pairwise comparisons in exercise 2.2 give quite similar results.
 
 Another surprise has been the accuracy of our models in general which are close to chance level. 
 
