@@ -34,7 +34,6 @@ library(reticulate)
 import numpy as np 
 import os 
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 ```
 
 
@@ -75,13 +74,14 @@ for i in range(N): #for loop in the range of the data
 #dividing by length of data 
 cov = cov_temp / N
 
-## plotting covariance matrix ## 
+## PLOTTING covariance matrix ## 
 plt.figure()
 plt.imshow(cov)
 plt.title("1.1iii: Sensor Covariance Matrix")
 plt.colorbar()
 plt.show()
 ```
+
 
 The sensors seem to pick up different signals for the most part, since the covariance matrix plot of the sensors has a petrol/navy color in general, which corresponds to a covariance of about 0. The yellow color at around 50 however indicates high covariance. 
 
@@ -99,7 +99,7 @@ plt.figure()
 plt.plot(times, mean_teslas.T)
 plt.axvline(color = "black")
 plt.axhline(color = "black")
-plt.title("Average Magnetic Field Across Repetitions")
+plt.title("1.1v: Average Magnetic Field Across Repetitions")
 plt.xlabel("Time (ms)")
 plt.ylabel("Magnetic Field (Tesla)")
 plt.show()
@@ -107,10 +107,10 @@ plt.show()
 
 ##### vi. Find the maximal magnetic field in the average. Then use `np.argmax` and `np.unravel_index` to find the sensor that has the maximal magnetic field.  
 ```{python}
-# MAXIMIMAL MAGNETIC FIELD AVG. #
+# MAXIMAL MAGNETIC FIELD IN AVG. #
 np.max(mean_teslas)
 
-# SENSOR WITH THE MAXIMAL MAGNETIC FIELD # 
+# SENSOR with THE MAXIMAL MAGNETIC FIELD # 
 np.unravel_index(np.argmax(mean_teslas), mean_teslas.shape) #first argument is the index of the maximal tesla value, the second argument is the dimensions of the array 
 
 times[112] # time in ms 
@@ -118,14 +118,14 @@ times[112] # time in ms
 
 The maximal magnetic field in the average is 2.7886216843591933e-13. 
 
-With np.unravel_index and np.argmax we get the sensor with the maximal magnetic field to be 73 as given by the coordinate system (73, 112). In the calculation, the time is given in the time-samples, but by printing this index from the times vector, we get the time in ms of 248. This number fits the peak of the red sensor in the plot from 1.1v. 
+With np.unravel_index and np.argmax we get the sensor with the maximal magnetic field to be 73 as given by the coordinate system (73, 112). In the calculation, the time is given in the time-samples (112), but by printing this index from the *times* vector, we get the time in ms of 248. This number fits the peak of the red sensor in the plot from 1.1v. 
 
 ##### vii. Plot the magnetic field for each of the repetitions (a line for each) for the sensor that has the maximal magnetic field. Highlight the time point with the maximal magnetic field in the average (as found in 1.1.v) using `plt.axvline`  
 ```{python}
-## SAVING SENSOR 73 ## 
+## SAVING Sensor 73 ## 
 sensor73 = data[:,73,:]
 
-## PLOTTING SENSOR 73 ##
+## PLOTTING Sensor 73 ##
 plt.figure()
 plt.plot(times, sensor73.T)
 plt.axvline(times[112], color = "black", linestyle = "--", label = "time at avg. maximal magnetic field")
@@ -133,18 +133,19 @@ plt.legend(loc = "upper right")
 plt.axvline(color = "black")
 plt.axhline(color = "black")
 
-plt.title("Average Magnetic Field Across Repetitions for Sensor 73")
+plt.title("1.1vii: Magnetic Field Across Repetitions for Sensor 73")
 plt.xlabel("Time (ms)")
 plt.ylabel("Magnetic Field (Tesla)")
 
 plt.show()
 ```
 
-**ATTENCIONE** fix plot legend
-
 ##### viii. Describe in your own words how the response found in the average is represented in the single repetitions. But do make sure to use the concepts _signal_ and _noise_ and comment on any differences on the range of values on the y-axis  
 
-**ATTENCIONE ** write later
+In the plot in *1.1vii*, we zoom in on the recordings made by sensor 73 for all 682 repetitions (one line for each repetition). On plot *1.1vii*, it is possible to see the indication of an *signal*/effect of sensor 73 as we see that the range of y-values is narrower and more positive at the dotted line. 
+
+It is the average of these repetitions that is visible in *1.1v* as the red line with the highest peak (sensor 73). Averaging across each repetition cancels the *noise* and makes the *signal* more clearly visible.
+
 
 #### 2) Now load `pas_vector.npy` (call it `y`). PAS is the same as in Assignment 2, describing the clarity of the subjective experience the subject reported after seeing the briefly presented stimulus  
 ```{python}
@@ -154,7 +155,7 @@ y = np.load("pas_vector.npy")
     
 ##### i. Which dimension in the `data` array does it have the same length as?  
 ```{python}
-# CHECKING the length of y #
+# CHECKING TE length of y #
 len(y)
 
 # The dimension it has the same length as #
@@ -166,13 +167,13 @@ y has the same length as the first dimension *repetitions* in our data array.
 
 ##### ii. Now make four averages (As in Exercise 1.1.iii), one for each PAS rating, and plot the four time courses (one for each PAS rating) for the sensor found in Exercise 1.1.v  
 ```{python}
-### FINDING the indexes of the pas ratings 
+## FINDING the indexes of the pas ratings ##
 pas1 = np.where(y == 1)
 pas2 = np.where(y == 2)
 pas3 = np.where(y == 3)
 pas4 = np.where(y == 4)
 
-### FINDING the mean TESLA values for each pas rating for all time values 
+## FINDING the mean TESLA values for each pas rating for all time values ##
 mean_pas1 = np.mean(sensor73[pas1], axis = 0)
 mean_pas1.shape
 
@@ -185,24 +186,18 @@ mean_pas3.shape
 mean_pas4 = np.mean(sensor73[pas4], axis = 0)
 mean_pas4.shape 
 
-## PLOTTING the mean TESLA values for sensor 73 for each pas rating 
+## PLOTTING the mean TESLA values for sensor 73 for each pas rating ##
 plt.figure()
-plt.plot(times, mean_pas1.T, color = "blue")
-plt.plot(times, mean_pas2.T, color = "green")
-plt.plot(times, mean_pas3.T, color = "orange")
-plt.plot(times, mean_pas4.T, color = "red")
+plt.plot(times, mean_pas1.T, color = "blue", label = "pas1")
+plt.plot(times, mean_pas2.T, color = "green", label = "pas2")
+plt.plot(times, mean_pas3.T, color = "orange", label = "pas3")
+plt.plot(times, mean_pas4.T, color = "red", label = "pas4")
 plt.axvline(color = "black")
 plt.axhline(color = "black")
 
-Pas1 = mpatches.Patch(color='blue', label='pas1')
-Pas2 = mpatches.Patch(color='green', label='pas2')
-Pas3 = mpatches.Patch(color='orange', label='pas3')
-Pas4 = mpatches.Patch(color='red', label='pas4')
+plt.legend()
 
-plt.legend(handles=[Pas1, Pas2, Pas3, Pas4])
-
-
-plt.title("Average Magnetic Field Across Repetitions for Sensor 73")
+plt.title("1.2ii: Average Magnetic Field Across Repetitions for Sensor 73")
 plt.xlabel("Time (ms)")
 plt.ylabel("Magnetic Field (Tesla)")
 
@@ -212,18 +207,18 @@ plt.show()
 
 ##### iii. Notice that there are two early peaks (measuring visual activity from the brain), one before 200 ms and one around 250 ms. Describe how the amplitudes of responses are related to the four PAS-scores. Does PAS 2 behave differently than expected?  
 
-To recap, the perceptual awareness scale has 4 categorically different ratings: 
+To recap from our assignment 2 part 2, the perceptual awareness scale has 4 categorically different ratings: 
 
 1. No Experience (NE)
 2. Weak Glimpse (WG)
 3. Almost Clear Experience (ACE)
 4. Clear Experience (CE)
 
-Firstly, the curve for pas 1 fits the theoretical expectations that having no experience should result in the least amount of activity (measured through magnetic field in this case). Following this logic, we would expect each pas rating to gradually increase in activation. 
+Firstly, the curve for *pas1* fits the theoretical expectations that having no experience should result in the least amount of activity (measured through magnetic field in this case). Following this logic, we would expect each pas rating to gradually increase in activation. 
 
-However, pas3 and pas4 is very similar in activation which is not surprising considering the rather opaque difference in their definitions.  
+However, *pas3* and *pas4* is very similar in activation which is not surprising considering the rather opaque difference in their definitions.  
 
-Unexpectedly, pas2 has the highest peak which goes against the theoretical reasoning.
+Unexpectedly, *pas2* has the highest peak which goes against the theoretical reasoning.
 
 # EXERCISE 2 - Do logistic regression to classify pairs of PAS-ratings  
 
@@ -231,40 +226,35 @@ Unexpectedly, pas2 has the highest peak which goes against the theoretical reaso
 
 ##### i. We'll start with a binary problem - create a new array called `data_1_2` that only contains PAS responses 1 and 2. Similarly, create a `y_1_2` for the target vector 
 ```{python}
+## CREATING a new array ##
 pas1_2= np.where((y==1)|(y==2))
 data_1_2=data[pas1_2]
 
 data_1_2.shape #checking that we did it right
 
-#Target vector
+## target vector ##
 y_1_2 = y[(y==1)|(y==2)] 
-y_1_2
 ```
 
 ##### ii. Scikit-learn expects our observations (`data_1_2`) to be in a 2d-array, which has samples (repetitions) on dimension 1 and features (predictor variables) on dimension 2. Our `data_1_2` is a three-dimensional array. Our strategy will be to collapse our two last dimensions (sensors and time) into one dimension, while keeping the first dimension as it is (repetitions). Use `np.reshape` to create a variable `X_1_2` that fulfils these criteria. 
+
 ```{python}
-#Reshaping
+## RESHAPING to create X_1_2 ##
 X_1_2 = data_1_2.reshape(data_1_2.shape[0],-1) 
 
-#data_1_2.shape[0] is repetitions with pas 1 or pas 2. This is the dimension we want to keep.
-# -1 collapses the second and third dimension. This is sensors and time. 
-#https://panjeh.medium.com/convert-numpy-3d-array-to-2d-array-in-python-931a4cdf8b12
-
 X_1_2.shape
-X_1_2
 ```
 
-```{python}
-print(data_1_2)
-```
+
+*data_1_2.shape[0]* is repetitions with *pas1* or *pas2*. This is the dimension we want to keep. -1 collapses the second (sensors) and third (time) dimension. 
 
 ##### iii. Import the `StandardScaler` and scale `X_1_2` 
 ```{python}
 from sklearn.preprocessing import StandardScaler 
 scaler = StandardScaler()
 
-
-X_1_2_scaled = scaler.fit_transform(X_1_2)
+## SCALING X_1_2 ##
+X_1_2_scaled = scaler.fit_transform(X_1_2) 
 X_1_2_scaled.shape
 ```
 
@@ -275,6 +265,7 @@ X_1_2_scaled.shape
 from sklearn.linear_model import LogisticRegression
 lr = LogisticRegression(penalty='none')
 
+## FITTING a logistic regression to our scaled data ## 
 lr.fit(X_1_2_scaled,y_1_2)
 ```
 
@@ -282,17 +273,18 @@ lr.fit(X_1_2_scaled,y_1_2)
 ```{python}
 lr.score(X_1_2_scaled, y_1_2)
 ```
-If we interpret this correctly, our logistic regression correctly classifies 100 % of the labels, which makes us suspect that something is wrong. We believe we are overfitting, because the accuracy is very high. We have not split the data into test and training sets, so the model "knows" the correct classifications, as it has been trained on the very data it is asked to predict.
+
+Our logistic regression correctly classifies 100% of the labels (as the output is 1.0), which makes us suspect that something is wrong. Considering this perfect accuracy, the model is clearly *overfitting* to the data. This may have happened since we have not split the data into test and training sets, so the model "knows" the correct classifications as it has been trained on the very data it is asked to predict. 
 
 ##### vi. Now apply the _L1_ penalty instead - how many of the coefficients (`.coef_`) are non-zero after this?  
 
 ```{python}
+## APPPLYING L1 ## 
 lr = LogisticRegression(penalty='l1', solver ='liblinear', random_state=1)
 lr.fit(X_1_2_scaled,y_1_2)
-lr.coef_.shape
-lr.score(X_1_2_scaled, y_1_2)
 
-np.count_nonzero(lr.coef_) #counting the non-zero coefficients
+## COUNTING the non-zero coefficients ##
+np.count_nonzero(lr.coef_) 
 ```
 
 ##### vii. Create a new reduced $X$ that only includes the non-zero coefficients - show the covariance of the non-zero features (two covariance matrices can be made; $X_{reduced}X_{reduced}^T$ or $X_{reduced}^TX_{reduced}$ (you choose the right one)) . Plot the covariance of the features using `plt.imshow`. Compared to the plot from 1.1.iii, do we see less covariance? 
@@ -703,7 +695,7 @@ print("Lsvc Mean Cross Validated:", round(np.mean(Lsvc_scores), 3))
 print("Rsvc Mean Cross Validated:", round(np.mean(Rsvc_scores), 3))
 ```
 
-The mean accuracy is higher for our support vector machine with a radial basis kernel (0.333) although both accuracies are quite low (just above chance level). 
+The mean accuracy is higher for our support vector machine with a radial basis kernel (0.333) although both accuracies are quite low (just above chance level at 25 %). 
 
 #####iii. Run the sample-by-sample analysis (similar to Exercise 2.2.v) with the best kernel (from Exercise 3.1.ii). Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)
 ```{python}
@@ -758,14 +750,14 @@ We can also calculate the accuracy in the this range which also shows that the c
 ## Finding the indices at the upper and lower bounds of the range 200-250 ms ##
 lower = np.where(times == 200)[0][0]
 upper = np.where(times == 248)[0][0]
-#note that the upper boiund is 248 to make it possible to divide by 4ms 
+#note that the upper bound is 248 to make it possible to divide by 4ms 
 
 ## Mean accuracy in the range ##
 print("Mean Accuracy Radial Basis in range 200-250 ms:", round(np.mean(cross_scores_Rsvc[lower:upper]),3))
 ```
 
 
-#### 2) Finally, split the equalized data set (with all four ratings) into a training part and test part, where the test part if 30 % of the trials. Use `train_test_split` from `sklearn.model_selection`
+#### 2) Finally, split the equalized data set (with all four ratings) into a training part and test part, where the test part if (*is) 30 % of the trials. Use `train_test_split` from `sklearn.model_selection`
 ```{python}
 from sklearn.model_selection import train_test_split
 
@@ -775,16 +767,53 @@ X_train, X_test, y_train, y_test = train_test_split(X_all_eq_scaled, all_pas_y_e
 
 ##### i. Use the kernel that resulted in the best classification in Exercise 3.1.ii and `fit`the training set and `predict` on the test set. This time your features are the number of sensors multiplied by the number of samples. 
 ```{python}
-##  
+##  kernel
 Rsvc = SVC(kernel = 'rbf')
 
+## Fit
+Rsvc.fit(X_train, y_train)
+
+## Predict
+predicted_y = Rsvc.predict(X_test)
+acc = list(y_test == predicted_y)
+
+# proportion of correctly predicted Pas scores
+acc.count(True)/len(acc)
+
+```
+Performance is just above chance level
 
 
+##### ii. Create a _confusion matrix_. It is a 4x4 matrix. The row names and the column names are the PAS-scores. There will thus be 16 entries. The PAS1xPAS1 entry will be the number of actual PAS1, $y_{pas1}$ that were predicted as PAS1, $\hat y_{pas1}$. The PAS1xPAS2 entry will be the number of actual PAS1, $y_{pas1}$ that were predicted as PAS2, $\hat y_{pas2}$ and so on for the remaining 14 entries.  Plot the matrix
+```{python}
+#confusion matrix
+from sklearn import metrics
+metrics.confusion_matrix(y_test, predicted_y)
+
+#prettier confusion matrix
+import pandas as pd
+predicted_y = pd.Series(predicted_y, name = 'Predicted PAS-rating')
+y_test = pd.Series(y_test, name = 'Actual PAS-rating')
+
+print(pd.crosstab(y_test, predicted_y))
 ```
 
 
 
-##### ii. Create a _confusion matrix_. It is a 4x4 matrix. The row names and the column names are the PAS-scores. There will thus be 16 entries. The PAS1xPAS1 entry will be the number of actual PAS1, $y_{pas1}$ that were predicted as PAS1, $\hat y_{pas1}$. The PAS1xPAS2 entry will be the number of actual PAS1, $y_{pas1}$ that were predicted as PAS2, $\hat y_{pas2}$ and so on for the remaining 14 entries.  Plot the matrix
-
 ##### iii. Based on the confusion matrix, describe how ratings are misclassified and if that makes sense given that ratings should measure the strength/quality of the subjective experience. Is the classifier biased towards specific ratings?  
+
+We see an exaggerated representation in the 3rd column (where PAS is predicted to be 3), indicating a bias. No matter the actual Pas-rating, the model will most frequently predict the PAS-rating to be 3 (for each row, the highest value is in the 3rd column). 
+Misclassifications are most frequent when the actual PAS-rating was 1, where 89% of trials are misclassified (see calculations below).
+
+We imagine that PAS 3 "Almost clear experience" is the "broadest" of the rating definitions, thereby allowing participants to classify a broader variety of experiences as PAS 3 (depending on their definition of "almost"). We could therefore expect that PAS 3 rating are more scattered across the multidimentional space, therefore making them harder to distinguish from other ratings as well as making PAS 3 the obvious/safe guess in most cases for our model, which only performs slightly better than chance. 
+
+```{python}
+#Misclassifications
+(5+16+12)/(4+5+16+12)*100 #PAS1
+(1+12+7)/(1+8+12+7)*100 #PAS2
+(1+5+7)/(1+4+14+7)*100 #PAS3
+(2+5+14)/(2+5+14+7)*100 #PAS4
+
+```
+
     
