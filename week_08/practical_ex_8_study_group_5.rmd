@@ -652,11 +652,11 @@ data_all_pas_eq, all_pas_y_eq = equalize_targets(data, y)
 
 Firstly, we reshape and scale our data: 
 ```{python}
-## Reshaping ##
+## RESHAPING ##
 X_all_eq = data_all_pas_eq.reshape(data_all_pas_eq.shape[0],-1) 
 X_all_eq.shape
 
-## Scaling ##
+## SCALING ##
 scaler = StandardScaler()
 X_all_eq_scaled = scaler.fit_transform(X_all_eq)
 X_all_eq_scaled.shape
@@ -666,23 +666,23 @@ X_all_eq_scaled.shape
 ```{python}
 from sklearn.svm import SVC
 
-## creating the classifier with a linear kernel ## 
+## CREATING the classifier with a linear kernel ## 
 Lsvc = SVC(kernel = 'linear')
 
-## creating the classifier with a radial basis ## 
+## CREATING the classifier with a radial basis ## 
 Rsvc = SVC(kernel = 'rbf')
 ```
 
 
 To compare the prediction accuracy of the two classifiers, we cross-validate them: 
 ```{python}
-## defining cv again for good measure ## 
+## DEFINING cv again for good measure ## 
 cv = StratifiedKFold(n_splits=5)
 
-## cross validating the linear support vector ##
+## CROSS-VALIDATING the linear support vector ##
 Lsvc_scores = cross_val_score(Lsvc, X_all_eq_scaled, all_pas_y_eq, cv=cv)
 
-## cross validating the radial support vector ##
+## CROSS-VALIDATING the radial support vector ##
 Rsvc_scores = cross_val_score(Rsvc, X_all_eq_scaled, all_pas_y_eq, cv=cv)
 
 ## printing the mean of the cross-validated performances ## 
@@ -690,17 +690,16 @@ print("Lsvc Mean Cross Validated:", round(np.mean(Lsvc_scores), 3))
 print("Rsvc Mean Cross Validated:", round(np.mean(Rsvc_scores), 3))
 ```
 
-The mean accuracy is higher for our support vector machine with a radial basis kernel (0.333) although both accuracies are quite low (just above chance level at 25 %). 
+The mean accuracy is higher for our support vector machine with a radial basis kernel (0.333) although both accuracies are quite low (slightly above chance level at 25 %). 
 
 #####iii. Run the sample-by-sample analysis (similar to Exercise 2.2.v) with the best kernel (from Exercise 3.1.ii). Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)
 ```{python}
-## empty list for the cross scores ##
+## EMPTY list for the cross scores ##
 cross_scores_Rsvc = []
 
-## defining cv again for good measure ## 
+## DEFINING cv again for good measure ## 
 cv = StratifiedKFold(n_splits=5)
 
-## for loop ## 
 for i in range(251):
   #Creating data and scaling 
   scaler = StandardScaler()
@@ -721,93 +720,81 @@ for i in range(251):
 ```
 
 ```{python}
-#Finding the time point where classification is best 
+## FINDING the time point where classification is best ##
 indexRsvc = cross_scores_Rsvc.index(max(cross_scores_Rsvc))
 times[indexRsvc]
 
 plt.figure()
 plt.axvline(x = times[indexRsvc], color = "black", alpha = 0.7)  
-plt.axhline(y = 0.25, color = "black") #horisontal line at chance level 
+plt.axhline(y = 0.25, color = "black") #horizontal line at chance level 
 plt.plot(times, cross_scores_Rsvc)
-plt.title("SVC with Radial Basis: Classification Accuracy vs. Time")
+plt.title("SVC with Radial Basis on all PAS: Classification Accuracy vs. Time")
 plt.xlabel("Time (ms)")
 plt.ylabel("Accuracy")
 plt.show()
 ```
 
+
 Since it is a multinomial classification with 4 categories, the chance level is 25 %. 
 
 ##### iv. Is classification of subjective experience possible at around 200-250 ms?  
-Looking at the plot visually, we note that classification of PAS ratings at around 200-250 is above chance level. 
 
-We can also calculate the accuracy in the this range which also shows that the classification of subjective experience is above chance level at 200-250ms:
-```{python}
-## Finding the indices at the upper and lower bounds of the range 200-250 ms ##
-lower = np.where(times == 200)[0][0]
-upper = np.where(times == 248)[0][0]
-#note that the upper bound is 248 to make it possible to divide by 4ms 
-
-## Mean accuracy in the range ##
-print("Mean Accuracy Radial Basis in range 200-250 ms:", round(np.mean(cross_scores_Rsvc[lower:upper]),3))
-```
+Looking at the plot from 3.1iii visually, we note that classification of PAS ratings at around 200-250 is above chance level. 
 
 
 #### 2) Finally, split the equalized data set (with all four ratings) into a training part and test part, where the test part if (*is) 30 % of the trials. Use `train_test_split` from `sklearn.model_selection`
 ```{python}
 from sklearn.model_selection import train_test_split
 
-X_train, X_test, y_train, y_test = train_test_split(X_all_eq_scaled, all_pas_y_eq, test_size=0.30, random_state=42) #we save to four different variables, the random_state ensures that it randomly sorts the dataset into train and test 
+X_train, X_test, y_train, y_test = train_test_split(X_all_eq_scaled, all_pas_y_eq, test_size=0.30, random_state=42) #we save to four different variables, the random_state ensures that it randomly sorts the data-set into train and test 
 ```
 
 
 ##### i. Use the kernel that resulted in the best classification in Exercise 3.1.ii and `fit`the training set and `predict` on the test set. This time your features are the number of sensors multiplied by the number of samples. 
 ```{python}
-##  kernel
+## INSTANTIATING kernel ##
 Rsvc = SVC(kernel = 'rbf')
 
-## Fit
+## FITTING ##
 Rsvc.fit(X_train, y_train)
 
-## Predict
+## PREDICTING ##
 predicted_y = Rsvc.predict(X_test)
 acc = list(y_test == predicted_y)
 
-# proportion of correctly predicted Pas scores
-acc.count(True)/len(acc)
+## PROPORTION of correctly predicted pas-scores ##
+print("Proportion of correctly predicted pas:", round(acc.count(True)/len(acc), 3))
 
 ```
-Performance is just above chance level
+
+
+Performance is just above chance level (0.277). 
 
 
 ##### ii. Create a _confusion matrix_. It is a 4x4 matrix. The row names and the column names are the PAS-scores. There will thus be 16 entries. The PAS1xPAS1 entry will be the number of actual PAS1, $y_{pas1}$ that were predicted as PAS1, $\hat y_{pas1}$. The PAS1xPAS2 entry will be the number of actual PAS1, $y_{pas1}$ that were predicted as PAS2, $\hat y_{pas2}$ and so on for the remaining 14 entries.  Plot the matrix
 ```{python}
-#confusion matrix
-from sklearn import metrics
-metrics.confusion_matrix(y_test, predicted_y)
-
-#prettier confusion matrix
+## CONFUSION matrix ##
 import pandas as pd
-predicted_y = pd.Series(predicted_y, name = 'Predicted PAS-rating')
-y_test = pd.Series(y_test, name = 'Actual PAS-rating')
+predicted_y = pd.Series(predicted_y, name = 'Predicted PAS')
+y_test = pd.Series(y_test, name = 'Actual PAS')
 
 print(pd.crosstab(y_test, predicted_y))
 ```
 
 
-
 ##### iii. Based on the confusion matrix, describe how ratings are misclassified and if that makes sense given that ratings should measure the strength/quality of the subjective experience. Is the classifier biased towards specific ratings?  
 
-We see an exaggerated representation in the 3rd column (where PAS is predicted to be 3), indicating a bias. No matter the actual Pas-rating, the model will most frequently predict the PAS-rating to be 3 (for each row, the highest value is in the 3rd column). 
-Misclassifications are most frequent when the actual PAS-rating was 1, where 89% of trials are misclassified (see calculations below).
+We see an exaggerated representation in the 3rd column (where *pas* is predicted to be 3), indicating a bias. No matter the actual *pas*-rating, the model will most frequently predict the *pas*-rating to be 3 (for each row, the highest value is in the 3rd column). 
+Misclassifications are most frequent when the actual *pas*-rating was 1 where 89% of trials are misclassified (see calculations below).
 
-We imagine that PAS 3 "Almost clear experience" is the "broadest" of the rating definitions, thereby allowing participants to classify a broader variety of experiences as PAS 3 (depending on their definition of "almost"). We could therefore expect that PAS 3 rating are more scattered across the multidimentional space, therefore making them harder to distinguish from other ratings as well as making PAS 3 the obvious/safe guess in most cases for our model, which only performs slightly better than chance. 
+We imagine that *pas3* (*almost clear experience*) is the "broadest" of the rating definitions thereby allowing participants to classify a broader variety of experiences as *pas3* (contingent on their definition of "almost"). We could therefore expect that *pas3* ratings are more scattered across the multidimensional space, making them harder for the SVM to isolate *pas3* from the other ratings. Thus, *pas3* is the obvious/safe guess in most cases for our model (which only performs slightly better than chance). 
 
 ```{python}
-#Misclassifications
-(5+16+12)/(4+5+16+12)*100 #PAS1
-(1+12+7)/(1+8+12+7)*100 #PAS2
-(1+5+7)/(1+4+14+7)*100 #PAS3
-(2+5+14)/(2+5+14+7)*100 #PAS4
+#MISCLASSIFICATIONS 
+print("Pas1 Misclassification:", round((5+16+12)/(4+5+16+12)*100, 3)) #pas1
+print("Pas2 Misclassification:", round((1+12+7)/(1+8+12+7)*100, 3)) #pas2
+print("Pas3 Misclassification:", round((1+5+7)/(1+4+14+7)*100, 3)) #pas3
+print("Pas4 Misclassification:", round((2+5+14)/(2+5+14+7)*100, 3)) #pas4
 
 ```
 
