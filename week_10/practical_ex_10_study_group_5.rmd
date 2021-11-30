@@ -149,18 +149,16 @@ eigvec = np.real(eigvec)
 ##### i. We need to sort the eigenvectors and eigenvalues according to the absolute values of the eigenvalues (use `np.abs` on the eigenvalues). 
 ```{python}
 ## ZIP the two lists of values together ##
-eigs = zip(np.abs(eigval), eigvec)
+eigs = zip(eigval, eigvec)
 
 ## SORT the zipped list ##
-eigs_sorted = sorted(eigs)
+eigs_sorted = sorted(eigs, reverse = True)
 
+## UNZIPPING the list with the * operator 
+eigs_unzip = zip(*eigs_sorted)
 
-## RETURN the zipped list to their individual lists 
-eigs_tuple = zip(*eigs_sorted)
-
-eigval, eigvec = [list(tuple) for tuple in eigs_tuple]
-
-
+#UNPACKING the list into seperate variables
+eigval, eigvec = map(list, eigs_unzip)
 
 ```
 
