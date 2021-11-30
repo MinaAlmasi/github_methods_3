@@ -138,31 +138,29 @@ np.linalg.matrix_rank(cov_matrix)
 ```{python}
 eigval, eigvec = np.linalg.eig(cov_matrix)
 
-eigval_real = np.real(eigval)
-eigvec_real = np.real(eigvec)
+eigval = np.real(eigval)
+eigvec = np.real(eigvec)
 ```
 
 
+#### 2) Create the weighting matrix $W$ and the projected data, $Z$
+
+
+##### i. We need to sort the eigenvectors and eigenvalues according to the absolute values of the eigenvalues (use `np.abs` on the eigenvalues). 
 ```{python}
-eigenvalues = eig[0].real #first array, real numbers
-eigenvectors = eig[1].real #second array, real numbers
+## ZIP the two lists of values together ##
+eigs = zip(np.abs(eigval), eigvec)
 
-eigenvalues.shape
-eigenvectors.shape
-
-```
+## SORT the zipped list ##
+eigs_sorted = sorted(eigs)
 
 
+## RETURN the zipped list to their individual lists 
+eigs_tuple = zip(*eigs_sorted)
 
-2) Create the weighting matrix $W$ and the projected data, $Z$
+eigval, eigvec = [list(tuple) for tuple in eigs_tuple]
 
 
-i. We need to sort the eigenvectors and eigenvalues according to the absolute values of the eigenvalues (use `np.abs` on the eigenvalues). 
-```{python}
-sort_eigenvalues = sorted(np.abs(eigenvalues))
-sort_eigenvalues
-
-#sort_eigenvectors = sorted(eigenvectors)
 
 ```
 
