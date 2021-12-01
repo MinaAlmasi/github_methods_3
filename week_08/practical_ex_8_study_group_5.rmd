@@ -1,8 +1,11 @@
 ---
 title: "practical_exercise_8 , Methods 3, 2021, autumn semester"
-author: "Mina Almasi, Daniel Blumenkranz, Anton Drasbæk Schiønning, Matilde Sterup"
+author: Mina Almasi, Daniel Blumenkranz, Anton Drasbæk Schiønning, Matilde Sterup
+  (Class1)
 date: "24/11/21"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 ---
 
 <style type="text/css">
@@ -36,15 +39,9 @@ import os
 import matplotlib.pyplot as plt
 ```
 
-
-```{python}
-os.chdir("/Users/minaalmasi/Documents/Cognitive_Science/Methods_3/methods3_code/data_W8")
-```
-
-
 #### 1) Load `megmag_data.npy` and call it `data` using `np.load`. You can use `join`, which can be imported from `os.path`, to create paths from different string segments
 ```{python}
-data = np.load("megmag_data.npy")
+data = np.load("/Users/minaalmasi/Documents/Cognitive_Science/Methods_3/methods3_code/data_W8/megmag_data.npy")
 ```
 
 ##### i. The data is a 3-dimensional array. The first dimension is number of repetitions of a visual stimulus , the second dimension is the number of sensors that record magnetic fields (in Tesla) that stem from neurons activating in the brain, and the third dimension is the number of time samples. How many repetitions, sensors and time samples are there?  
@@ -83,7 +80,7 @@ plt.show()
 ```
 
 
-The sensors seem to pick up different signals for the most part, since the covariance matrix plot of the sensors has a petrol/navy color in general, which corresponds to a covariance of about 0. The yellow color at around 50 however indicates high covariance. 
+The sensors seem to pick up different signals for the most part, since the covariance matrix plot of the sensors has a petrol/navy color in general which corresponds to a covariance of about 0. The yellow color at around 50 however indicates high covariance. 
 
 
 ##### iv. Make an average over the repetition dimension using `np.mean` - use the `axis` argument. (The resulting array should have two dimensions with sensors as the first and time as the second)  
@@ -149,13 +146,13 @@ It is the average of these repetitions that is visible in *1.1v* as the red line
 
 #### 2) Now load `pas_vector.npy` (call it `y`). PAS is the same as in Assignment 2, describing the clarity of the subjective experience the subject reported after seeing the briefly presented stimulus  
 ```{python}
-y = np.load("pas_vector.npy")
+y = np.load("/Users/minaalmasi/Documents/Cognitive_Science/Methods_3/methods3_code/data_W8/pas_vector.npy")
 ```
 
     
 ##### i. Which dimension in the `data` array does it have the same length as?  
 ```{python}
-# CHECKING TE length of y #
+# CHECKING THE length of y #
 len(y)
 
 # The dimension it has the same length as #
