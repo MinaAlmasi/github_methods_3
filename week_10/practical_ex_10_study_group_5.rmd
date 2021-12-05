@@ -38,18 +38,13 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
 ```
 
-```{python}
-#os.chdir("/Users/minaalmasi/Documents/Cognitive_Science/Methods_3/methods3_code/data_W8")
-```
-
-
 #### 1) Create a covariance matrix, find the eigenvectors and the eigenvalues
 
 
 ##### i. Load `megmag_data.npy` and call it `data` using `np.load`. You can use `join`, which can be imported from `os.path`, to create paths from different string segments 
 ```{python}
-data = np.load('megmag_data.npy')
-y = np.load('pas_vector.npy')
+data = np.load('/Users/minaalmasi/Documents/Cognitive_Science/Methods_3/methods3_code/data_W8/megmag_data.npy')
+y = np.load('/Users/minaalmasi/Documents/Cognitive_Science/Methods_3/methods3_code/data_W8/pas_vector.npy')
 ```
 
 
@@ -243,9 +238,6 @@ for i in n_pc:
   lr = LogisticRegression(solver = "newton-cg")
   lr.fit(Z[:,:i].reshape(-1, i), eq_y) # create fits with increasing amounts of principle components
   LR_scores.append(lr.score(Z[:,:i].reshape(-1, i), eq_y))
-
-#print(LR_scores)
-
 ```
 
 WE DID THIS RIGHT
@@ -274,7 +266,6 @@ The proportion correctly classified completely stagnates by adding the last 5 pr
 #### 2) Now, we are going to use cross-validation - we are using `cross_val_score` and `StratifiedKFold` from `sklearn.model_selection`
 ```{python}
 from sklearn.model_selection import cross_val_score, StratifiedKFold
-
 ```
 
 
@@ -282,15 +273,13 @@ from sklearn.model_selection import cross_val_score, StratifiedKFold
 ```{python}
 cv_scores = []
 
-lr = LogisticRegression()
 cv = StratifiedKFold() 
 
 for i in n_pc:
   lr = LogisticRegression(solver = "newton-cg")
   cross_val_scores = cross_val_score(lr, Z[:,:i].reshape(-1, i), eq_y, cv = cv)
   cv_scores.append(np.mean(cross_val_scores))
-
-#print(cv_scores)
+  
 ```
 
 
@@ -303,14 +292,12 @@ plt.xlabel("Number of Principle Components")
 plt.ylabel("Proportion Correctly Classified")
 plt.show()
 ```
-
-
-The plot is different in the sense that the proportion correctly classified does not just increase with the number of principle components. This is because when we do cross-validation, we punish *overfitting* as we work with both training and test data. 
+The plot is different in the sense that the proportion correctly classified does not just increase with the number of principle components. This is because when we do cross-validation, we punish overfitting as we work with both training and test data. 
 
 ##### iii. What is the number of principal components, $k_{max\_accuracy}$, that results in the greatest classification accuracy when cross-validated?  
 ```{python}
 peak_pc_indice = np.argmax(cv_scores)
-peak_pc = peak_pc_indice + 1#indice of max cv score is 15, the number of principal components that result in the greatest accuracy is therefore 16. 
+peak_pc = peak_pc_indice + 1 #indice of max cv score is 15, the number of principal components that result in the greatest accuracy is therefore 16. 
 
 plt.axvline(peak_pc, color = "k")
 plt.show()
@@ -339,11 +326,27 @@ from sklearn.decomposition import PCA
 
 ##### i. For __each__ of the 251 time samples, use the same estimator and cross-validation as in Exercises 2.1.i and 2.2.i. Run two analyses - one where you reduce the dimensionality to $k_{max\_accuracy}$ dimensions using `PCA` and one where you use the full data. Remember to scale the data (for now, ignore if you get some convergence warnings - you can try to increase the number of iterations, but this is not obligatory)  
 ```{python}
+cv = StratifiedKFold(n_splits=5) 
+pca_kmax = PCA(n_components=peak_pc)
+pca_all = PCA(n_components=none) #set to none so all principal components are kept
+
+pca_kmax_scores = []
+pca_all_scores = []
 
 for i in range(251):
-  lr = LogisticRegression(solver = "newton-cg")
-  lr.fit(Z[:,:i].reshape(-1, i), eq_y) # create fits with increasing amounts of principle components
-  LR_scores.append(lr.score(Z[:,:i].reshape(-1, i), eq_y))
+  ## Instantiating Objects ## 
+  lr = LogisticRegression(solver = "newton-cg") 
+  scaler = StandardScaler()
+  
+  ## Scaling ## 
+  X = data_eq[:,:,i]
+  X_scaled = scaler.fit_transform(X)
+  
+  
+  ## First Analysis (PCA w. k_max_accuracy)
+  Z = pca_kmax.fit_transform(X)
+  cross_val_score(lr, Z, eq_y) 
+  pca_kmax_scores.append(lr.score(Z, eq_y))
   
   
 
