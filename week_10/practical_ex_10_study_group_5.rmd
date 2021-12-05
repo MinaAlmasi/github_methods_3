@@ -325,12 +325,36 @@ from sklearn.decomposition import PCA
 
 
 ##### i. For __each__ of the 251 time samples, use the same estimator and cross-validation as in Exercises 2.1.i and 2.2.i. Run two analyses - one where you reduce the dimensionality to $k_{max\_accuracy}$ dimensions using `PCA` and one where you use the full data. Remember to scale the data (for now, ignore if you get some convergence warnings - you can try to increase the number of iterations, but this is not obligatory)  
+
+Firstly, we run the PCA with the k-max principle components with 16 which we found to be the optimal amount of principle components: 
+
 ```{python}
-cv = StratifiedKFold(n_splits=5) 
-pca_kmax = PCA(n_components=peak_pc)
-pca_all = PCA(n_components=none) #set to none so all principal components are kept
+cv = StratifiedKFold(n_splits=5)
+pca_kmax = PCA(n_components=16)
 
 pca_kmax_scores = []
+
+for i in range(251):
+  ## Instantiating Objects ## 
+  lr = LogisticRegression(solver = "newton-cg") 
+  scaler = StandardScaler()
+  
+  ## Scaling ## 
+  X = eq_data[:,:,i]
+  X_scaled = scaler.fit_transform(X)
+  
+  
+  ## First Analysis (PCA w. k_max_accuracy)
+  Z = pca_kmax.fit_transform(X_scaled)
+  cv_score = cross_val_score(lr, Z, eq_y, cv = cv) 
+  pca_kmax_scores.append(np.mean(cv_score))
+
+```
+
+Secondly, we run the same analysis with all principle components: 
+
+```{python}
+pca_all = PCA(n_components=None) #set to none so all principal components are kept
 pca_all_scores = []
 
 for i in range(251):
@@ -339,23 +363,36 @@ for i in range(251):
   scaler = StandardScaler()
   
   ## Scaling ## 
-  X = data_eq[:,:,i]
+  X = eq_data[:,:,i]
   X_scaled = scaler.fit_transform(X)
   
   
-  ## First Analysis (PCA w. k_max_accuracy)
-  Z = pca_kmax.fit_transform(X)
-  cross_val_score(lr, Z, eq_y) 
-  pca_kmax_scores.append(lr.score(Z, eq_y))
-  
-  
-
+  ## Second Analysis (PCA w. all pc)
+  Z = pca_all.fit_transform(X_scaled)
+  cv_score = cross_val_score(lr, Z, eq_y, cv = cv) 
+  pca_all_scores.append(np.mean(cv_score))
 
 ```
 
 
 ##### ii. Plot the classification accuracies for each time sample for the analysis with PCA and for the one without in the same plot. Have time (ms) on the _x_-axis and classification accuracy on the _y_-axis 
+```{python}
+plt.figure()
+plt.axvline(248, color = "k", label = "Time = 248 ms")
+plt.plot(times, pca_kmax_scores, "-", label = "16 PCs")
+plt.plot(times, pca_all_scores, "-", color = "r", label = "All PCs")
+plt.title("2.3ii: Model accuracies for all time samples")
+plt.xlabel("Time (ms)")
+plt.ylabel("Proportion Correctly Classified")
+plt.legend()
+plt.show()
+```
 
 
-##### iii. Describe the differences between the two analyses - focus on the time interval between 0 ms and 400 ms - describe in your own words why the logistic regression performs better on the PCA-reduced dataset around the peak magnetic activity  
+##### iii. Describe the differences between the two analyses - focus on the time interval between 0 ms and 400 ms - describe in your own words why the logistic regression performs better on the PCA-reduced dataset around the peak magnetic activity
+
+In general, it seems that the PCA-reduced model has higher accuracies in the given interval. The best performance of the PCA-reduced model is seen at 248 ms. This makes sense, since our choice of 16 PCs is based on logistic regression at this particular time. 
+
+In the interval around the peak magnetic activity, 248 ms, a signal/effect is present (that is the case for sensor 73 but here we assume this pattern applies to all sensors). This motivates the use of an underlying data generator (i.e., principal components). Therefore, the PCA-reduced model performs better around that time.  
+
 
