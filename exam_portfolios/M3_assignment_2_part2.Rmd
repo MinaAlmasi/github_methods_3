@@ -40,8 +40,8 @@ The data is associated with Experiment 1 of the article at the following DOI htt
   
 ### (GROUP) 1) Put the data from all subjects into a single data frame - note that some of the subjects do not have the _seed_ variable. For these subjects, add this variable and make in _NA_ for all observations. (The _seed_ variable will not be part of the analysis and is not an experimental variable)  
 
-```{r 4.1 loading}
-data <- read_bulk(directory = "/Users/minaalmasi/Documents/Cognitive_Science/Methods_3/methods3_code/github_methods_3/week_05/experiment_1")
+```{r 4.1 loading, message = FALSE}
+data <- read_bulk(directory = "/Users/antondrasbaek/Desktop/Uni/3rd Semester/Methods 3/github_methods_3/week_05/experiment_1")
 ```
 
 Investigating the seed variable: 
@@ -221,7 +221,7 @@ $~$
 
 $~$
 
-__RAPPORT: METHODS SECTION__
+__REPORT: METHODS SECTION__
 
 The following methods section was written based on the article "*Visual expectations change subjective experience without changing performance*" (Andersen et al., 2019).  
 
@@ -563,7 +563,6 @@ m6_plot
 
 ```{r}
 comparison <- ggarrange(optim_plot, m6_plot)
-comparison
 
 annotate_figure(comparison, top = text_grob("Subject 7: PAS Fits", color = "black", face = "bold", size = 14))
 ```
