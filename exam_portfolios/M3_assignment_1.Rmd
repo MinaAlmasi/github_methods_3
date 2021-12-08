@@ -5,7 +5,7 @@ author:
 - Daniel Blumenkranz (DB, 202008989)
 - Anton Drasbæk Schiønning (ADS, 202008161)
 - Matilde Just Sterup (MS, 202004691)
-date: "First edit: 22/09/21, Final Edit: 13/12/21"
+date: "First edit: 22/09/21, Final edit: 13/12/21"
 output:
   html_document:
     df_print: paged
