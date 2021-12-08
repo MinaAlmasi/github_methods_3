@@ -374,7 +374,7 @@ AIC(m1, m2, m3, m4)</code></pre>
 {"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["df"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["AIC"],"name":[2],"type":["dbl"],"align":["right"]}],"data":[{"1":"3","2":"2163.971","_rn_":"m1"},{"1":"4","2":"2152.314","_rn_":"m2"},{"1":"4","2":"2099.626","_rn_":"m3"},{"1":"5","2":"2092.482","_rn_":"m4"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
-<p>The residual standard deviation penalizes more complex models as the formula includes the degrees of formula:</p>
+<p>The residual standard deviation penalizes more complex models as the formula includes degrees of freedom, <span class="math inline">\(df\)</span>:</p>
 <p><span class="math display">\[ \text {residual standard deviation} = \sqrt{\frac{\sum^n_{i = 1}\epsilon^2_i}{df}}\]</span> Where the degrees of freedom <span class="math inline">\(df\)</span> is calculated by subtracting the model parameters from the total amount of observations <span class="math inline">\(n\)</span>. Complex models with more parameters will thus have a lower <span class="math inline">\(df\)</span> which in turn lead to a higher residual standard deviation.</p>
 <p>Likewise, the AIC value also penalizes more complex models. Despite this, the fourth model (m4) with subject and scenario as random effects has the lowest residual standard deviation as well as the lowest AIC.</p>
 </div>
@@ -406,7 +406,7 @@ AIC(m1, m2, m3, m4)</code></pre>
 ## Correlation of Fixed Effects:
 ##         (Intr)
 ## genderM -0.606</code></pre>
-<p>Including random intercepts for <em>subject</em> accounts for a higher amount of variance (588.83) compared to the random intercepts for <em>scenario</em> (96.17).</p>
+<p>Looking at the output for random effects, we see that including random intercepts for <em>subject</em> accounts for a higher amount of variance (588.83) compared to the random intercepts for <em>scenario</em> (96.17).</p>
 </div>
 </div>
 <div id="why-is-our-single-level-model-bad" class="section level4">

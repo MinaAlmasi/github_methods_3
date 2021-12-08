@@ -168,7 +168,7 @@ residual_sd
 AIC(m1, m2, m3, m4)
 ```
 
-The residual standard deviation penalizes more complex models as the formula includes the degrees of formula: 
+The residual standard deviation penalizes more complex models as the formula includes degrees of freedom, $df$: 
 
 $$ \text {residual standard deviation} = \sqrt{\frac{\sum^n_{i = 1}\epsilon^2_i}{df}}$$
 Where the degrees of freedom $df$ is calculated by subtracting the model parameters from the total amount of observations $n$. Complex models with more parameters will thus have a lower $df$ which in turn lead to a higher residual standard deviation. 
@@ -181,7 +181,7 @@ Likewise, the AIC value also penalizes more complex models. Despite this, the fo
 summary(m4)
 ```
 
-Including random intercepts for *subject* accounts for a higher amount of variance (588.83) compared to the random intercepts for *scenario* (96.17). 
+Looking at the output for random effects, we see that including random intercepts for *subject* accounts for a higher amount of variance (588.83) compared to the random intercepts for *scenario* (96.17). 
 
 #### 2) Why is our single-level model bad?
 ##### (DB) i. create a new data frame that has three variables, _subject_, _gender_ and _f0mn_, where _f0mn_ is the average of all responses of each subject, i.e. averaging across _attitude_ and _scenario_
