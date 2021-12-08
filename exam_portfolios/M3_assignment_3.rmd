@@ -80,7 +80,34 @@ plt.colorbar()
 plt.show()
 ```
 
-The sensors seem to pick up different signals for the most part, since the covariance matrix plot of the sensors has a petrol/navy color in general which corresponds to a covariance of about 0. The yellow color at around 50 however indicates high covariance. 
+From the plot, it appears that the sensors seem to pick up different signals for the most part, since the covariance matrix plot of the sensors has a petrol/navy color in general which corresponds to a covariance of about 0. The yellow color at around 50 however indicates high covariance. This covariance is so high that it distorts the rest of the picture. This may be amended by standardising the data:
+
+```{python}
+from sklearn.preprocessing import StandardScaler 
+
+N = len(data) #length of data
+
+cov_temp = np.zeros(shape = (102, 102)) #creating an empty matrix
+
+for i in range(N): #for loop in the range of the data 
+  scaler = StandardScaler()
+  X = data[i,:,:]
+  X_scaled = scaler.fit_transform(X)
+  X_T = np.transpose(X_scaled)
+  cov_temp += np.dot(X_scaled, X_T)
+
+#dividing by length of data 
+cov_scaled = cov_temp / N
+
+## PLOTTING covariance matrix ## 
+plt.figure()
+plt.imshow(cov_scaled, vmin=-200, vmax=200) 
+plt.title("1.1iii: Scaled Sensor Covariance Matrix")
+plt.colorbar()
+plt.show()
+```
+
+By standardising the data and setting the upper limit to a lower value (vmax = 200), the covariance of the sensors become more apparent. Hence not all sensors pick up completely independent signals. 
 
 
 #### (ADS) iv. Make an average over the repetition dimension using `np.mean` - use the `axis` argument. (The resulting array should have two dimensions with sensors as the first and time as the second)  
@@ -313,16 +340,16 @@ plt.title("2.1vii: Non-Zero Coefficients Covariance Matrix")
 plt.colorbar()
 plt.show()
 
-## PLOTTING 1.1iii ##
+## PLOTTING 1.1iii (scaled) ##
 plt.figure()
-plt.imshow(cov)
-plt.title("1.1iii: Sensor Covariance Matrix")
+plt.imshow(cov_scaled, vmin=-200, vmax=200) 
+plt.title("1.1iii: Scaled Sensor Covariance Matrix")
 plt.colorbar()
 plt.show()
 ```
 
 
-Compared to the plot from 1.1iii, we see more covariance (relative to the plot). We suspect that this is due to isolating the features with higher tesla values. When the tesla values are higher, this indicates a signal and the differences in pas-ratings will be more distinguishable. These are thus more likely to result in non-zero coefficients in a penalised regression. 
+Compared to the scaled plot from 1.1iii, we see less covariance in the 2.1vii plot. This is due to our selection of only non-zero features. We have removed all the features which do not contribute to explaining more variance. In a way, this is the same as keeping as many variables as possible which explain different parts of the variance. For this reason, we expect and see less covariance in the non-zero plot. 
 
 
 ### 2) Now, we are going to build better (more predictive) models by using cross-validation as an outcome measure    
